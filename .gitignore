@@ -54,3 +54,8 @@ application-my.yaml
 .DS_Store
 **/.DS_Store
 outputs/
+
+# Local Codex/debug artifacts
+.codex-temp-delete/
+playwright-localhost*.png
+run-yudao-server-local.ps1
