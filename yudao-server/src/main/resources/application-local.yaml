@@ -1,0 +1,255 @@
+﻿server:
+  port: 48080
+
+--- #################### 閺佺増宓佹惔鎾舵祲閸忔娊鍘ょ純?####################
+spring:
+  autoconfigure:
+    # noinspection SpringBootApplicationYaml
+    exclude:
+      - com.alibaba.druid.spring.boot.autoconfigure.DruidDataSourceAutoConfigure # 閹烘帡娅?Druid 閻ㄥ嫯鍤滈崝銊╁帳缂冾噯绱濇担璺ㄦ暏 dynamic-datasource-spring-boot-starter 闁板秶鐤嗘径姘殶閹诡喗绨?
+      - org.springframework.boot.autoconfigure.quartz.QuartzAutoConfiguration # 姒涙顓?local 閻滎垰顣ㄩ敍灞肩瑝瀵偓閸?Quartz 閻ㄥ嫯鍤滈崝銊╁帳缂?
+      - org.springframework.ai.vectorstore.qdrant.autoconfigure.QdrantVectorStoreAutoConfiguration # 缁備胶鏁?AI 濡€虫健閻?Qdrant閿涘本澧滈崝銊ュ灡瀵?
+      - org.springframework.ai.vectorstore.milvus.autoconfigure.MilvusVectorStoreAutoConfiguration # 缁備胶鏁?AI 濡€虫健閻?Milvus閿涘本澧滈崝銊ュ灡瀵?
+      - com.binarywang.spring.starter.wxjava.mp.config.WxMpAutoConfiguration
+  datasource:
+    druid: # Druid 閵嗘劗娲冮幒褋鈧垹娴夐崗宕囨畱閸忋劌鐪柊宥囩枂
+      web-stat-filter:
+        enabled: true
+      stat-view-servlet:
+        enabled: true
+        allow: # 鐠佸墽鐤嗛惂钘夋倳閸楁洩绱濇稉宥咃綖閸掓瑥鍘戠拋鍛婂閺堝顔栭梻?
+        url-pattern: /druid/*
+        login-username: # 閹貉冨煑閸欐壆顓搁悶鍡欐暏閹村嘲鎮曢崪灞界槕閻?
+        login-password:
+      filter:
+        stat:
+          enabled: true
+          log-slow-sql: true # 閹?SQL 鐠佹澘缍?
+          slow-sql-millis: 100
+          merge-sql: true
+        wall:
+          config:
+            multi-statement-allow: true
+    dynamic: # 婢舵碍鏆熼幑顔界爱闁板秶鐤?
+      druid: # Druid 閵嗘劘绻涢幒銉︾潨閵嗘垹娴夐崗宕囨畱閸忋劌鐪柊宥囩枂
+        initial-size: 1 # 閸掓繂顫愭潻鐐村复閺?
+        min-idle: 1 # 閺堚偓鐏忓繗绻涢幒銉︾潨閺佷即鍣?
+        max-active: 20 # 閺堚偓婢堆嗙箾閹恒儲鐫滈弫浼村櫤
+        max-wait: 60000 # 闁板秶鐤嗛懢宄板絿鏉╃偞甯寸粵澶婄窡鐡掑懏妞傞惃鍕闂傝揪绱濋崡鏇氱秴閿涙碍顕犵粔鎺炵礄1 閸掑棝鎸撻敍?
+        time-between-eviction-runs-millis: 60000 # 闁板秶鐤嗛梻鎾婢舵矮绠欓幍宥堢箻鐞涘奔绔村▎鈩冾梾濞村绱濆Λ鈧ù瀣付鐟曚礁鍙ч梻顓犳畱缁屾椽妫芥潻鐐村复閿涘苯宕熸担宥忕窗濮ｎ偆顫楅敍? 閸掑棝鎸撻敍?
+        min-evictable-idle-time-millis: 600000 # 闁板秶鐤嗘稉鈧稉顏囩箾閹恒儱婀Ч鐘辫厬閺堚偓鐏忓繒鏁撶€涙娈戦弮鍫曟？閿涘苯宕熸担宥忕窗濮ｎ偆顫楅敍?0 閸掑棝鎸撻敍?
+        max-evictable-idle-time-millis: 1800000 # 闁板秶鐤嗘稉鈧稉顏囩箾閹恒儱婀Ч鐘辫厬閺堚偓婢堆呮晸鐎涙娈戦弮鍫曟？閿涘苯宕熸担宥忕窗濮ｎ偆顫楅敍?0 閸掑棝鎸撻敍?
+        validation-query: SELECT 1 FROM DUAL # 闁板秶鐤嗗Λ鈧ù瀣箾閹恒儲妲搁崥锔芥箒閺?
+        test-while-idle: true
+        test-on-borrow: false
+        test-on-return: false
+        pool-prepared-statements: true # 閺勵垰鎯佸鈧崥?PreparedStatement 缂傛挸鐡?
+        max-pool-prepared-statement-per-connection-size: 20 # 濮ｅ繋閲滄潻鐐村复缂傛挸鐡ㄩ惃?PreparedStatement 閺佷即鍣?
+      primary: master
+      datasource:
+        master:
+          url: jdbc:mysql://127.0.0.1:3306/ruoyi-vue-pro-jdk8?useSSL=false&serverTimezone=Asia/Shanghai&allowPublicKeyRetrieval=true&nullCatalogMeansCurrent=true&rewriteBatchedStatements=true # MySQL Connector/J 8.X 鏉╃偞甯撮惃鍕仛娓?
+          #          url: jdbc:mysql://127.0.0.1:3306/ruoyi-vue-pro?useSSL=true&allowPublicKeyRetrieval=true&useUnicode=true&characterEncoding=UTF-8&serverTimezone=Asia/Shanghai&rewriteBatchedStatements=true # MySQL Connector/J 5.X 鏉╃偞甯撮惃鍕仛娓?
+          #          url: jdbc:postgresql://127.0.0.1:5432/ruoyi-vue-pro # PostgreSQL 鏉╃偞甯撮惃鍕仛娓?
+          #          url: jdbc:oracle:thin:@127.0.0.1:1521:xe # Oracle 鏉╃偞甯撮惃鍕仛娓?
+          #          url: jdbc:sqlserver://127.0.0.1:1433;DatabaseName=ruoyi-vue-pro;SelectMethod=cursor;encrypt=false;rewriteBatchedStatements=true;useUnicode=true;characterEncoding=utf-8 # SQLServer 鏉╃偞甯撮惃鍕仛娓?
+          #          url: jdbc:dm://127.0.0.1:5236?schema=RUOYI_VUE_PRO # DM 鏉╃偞甯撮惃鍕仛娓?
+          #          url: jdbc:kingbase8://127.0.0.1:54321/test  # 娴滃搫銇囬柌鎴滅波 KingbaseES 鏉╃偞甯撮惃鍕仛娓?
+          #          url: jdbc:postgresql://127.0.0.1:5432/postgres # OpenGauss 鏉╃偞甯撮惃鍕仛娓?
+          #          url: jdbc:postgresql://127.0.0.1:5866/ruoyi-vue-pro # 閻庢岸鐝?HighGo 鏉╃偞甯撮惃鍕仛娓?
+          username: root
+          password: root
+          #          username: sa # SQL Server 鏉╃偞甯撮惃鍕仛娓?
+          #          password: Yudao@2024 # SQL Server 鏉╃偞甯撮惃鍕仛娓?
+          #          username: SYSDBA # DM 鏉╃偞甯撮惃鍕仛娓?
+          #          password: SYSDBA001 # DM 鏉╃偞甯撮惃鍕仛娓?
+          #          username: root # OpenGauss 鏉╃偞甯撮惃鍕仛娓?
+          #          password: Yudao@2024 # OpenGauss 鏉╃偞甯撮惃鍕仛娓?
+          #          username: root # 閻庢岸鐝?HighGo 鏉╃偞甯撮惃鍕仛娓?
+          #          password: 123456 # 閻庢岸鐝?HighGo 鏉╃偞甯撮惃鍕仛娓?
+        slave: # 濡剝瀚欐禒搴＄氨閿涘苯褰查弽瑙勫祦閼奉亜绻侀棁鈧憰浣锋叏閺€?
+          lazy: true # 瀵偓閸氼垱鍣块崝鐘烘祰閿涘奔绻氱拠浣告儙閸斻劑鈧喎瀹?
+          url: jdbc:mysql://127.0.0.1:3306/ruoyi-vue-pro-jdk8?useSSL=false&serverTimezone=Asia/Shanghai&allowPublicKeyRetrieval=true&rewriteBatchedStatements=true&nullCatalogMeansCurrent=true
+          username: root
+          password: root
+#        tdengine: # IoT 閺佺増宓佹惔鎿勭礄闂団偓鐟?IoT 閻椻晞浠堢純鎴濆晙瀵偓閸氼垰娅岄敍渚婄礆
+#          lazy: true # 瀵偓閸氼垱鍣块崝鐘烘祰閿涘奔绻氱拠浣告儙閸斻劑鈧喎瀹?
+#          url: jdbc:TAOS-WS://127.0.0.1:6041/ruoyi_vue_pro?varcharAsString=true&enableAutoReconnect=true # 閸欏倽顫嗛敍姝╰tps://t.zsxq.com/qaX9c閿涘苯绱戦崥?TDengine WebSocket 閼奉亜濮╅柌宥堢箾
+#          driver-class-name: com.taosdata.jdbc.ws.WebSocketDriver
+#          username: root
+#          password: taosdata
+#          druid:
+#            validation-query: SELECT SERVER_STATUS() # TDengine 閺佺増宓佸┃鎰畱閺堝鏅ラ幀褎顥呴弻?SQL
+
+  # Redis 闁板秶鐤嗛妴淇乪disson 姒涙顓婚惃鍕帳缂冾喛鍐绘径鐔跺▏閻㈩煉绱濇稉鈧懜顑跨瑝闂団偓鐟曚浇绻樼悰宀冪殶娴?
+  redis:
+    host: 127.0.0.1 # 閸︽澘娼?
+    port: 6379 # 缁旑垰褰?
+    database: 0 # 閺佺増宓佹惔鎾跺偍瀵?
+#    password: dev # 鐎靛棛鐖滈敍灞界紦鐠侇喚鏁撴禍褏骞嗘晶鍐ㄧ磻閸?
+
+--- #################### 鐎规碍妞傛禒璇插閻╃鍙ч柊宥囩枂 ####################
+
+# Quartz 闁板秶鐤嗘い鐧哥礉鐎电懓绨?QuartzProperties 闁板秶鐤嗙猾?
+spring:
+  quartz:
+    auto-startup: true # 閺堫剙婀村鈧崣鎴犲箚婢у喛绱濈亸浠嬪櫤娑撳秷顩﹀鈧崥?Job
+    scheduler-name: schedulerName # Scheduler 閸氬秴鐡ч妴鍌炵帛鐠併倓璐?schedulerName
+    job-store-type: jdbc # Job 鐎涙ê鍋嶉崳銊ц閸ㄥ鈧倿绮拋銈勮礋 memory 鐞涖劎銇氶崘鍛摠閿涘苯褰查柅?jdbc 娴ｈ法鏁ら弫鐗堝祦鎼存挶鈧?
+    wait-for-jobs-to-complete-on-shutdown: true # 鎼存梻鏁ら崗鎶芥４閺冭绱濋弰顖氭儊缁涘绶熺€规碍妞傛禒璇插閹笛嗩攽鐎瑰本鍨氶妴鍌炵帛鐠併倓璐?false 閿涘苯缂撶拋顔款啎缂冾喕璐?true
+    properties: # 濞ｈ濮?Quartz Scheduler 闂勫嫬濮炵仦鐐粹偓褝绱濋弴鏉戭樋閸欘垯浜掗惇?http://www.quartz-scheduler.org/documentation/2.4.0-SNAPSHOT/configuration.html 閺傚洦銆?
+      org:
+        quartz:
+          # Scheduler 閻╃鍙ч柊宥囩枂
+          scheduler:
+            instanceName: schedulerName
+            instanceId: AUTO # 閼奉亜濮╅悽鐔稿灇 instance ID
+          # JobStore 閻╃鍙ч柊宥囩枂
+          jobStore:
+            # JobStore 鐎圭偟骞囩猾姹団偓鍌氬讲鐟欎礁宕ョ€诡澁绱癶ttps://blog.csdn.net/weixin_42458219/article/details/122247162
+            class: org.springframework.scheduling.quartz.LocalDataSourceJobStore
+            isClustered: true # 閺勵垶娉︾紘銈喣佸?
+            clusterCheckinInterval: 15000 # 闂嗗棛鍏㈠Λ鈧弻銉╊暥閻滃浄绱濋崡鏇氱秴閿涙碍顕犵粔鎺嬧偓鍌炵帛鐠併倓璐?15000閿涘苯宓?15 缁?
+            misfireThreshold: 60000 # misfire 闂冣偓閸婄》绱濋崡鏇氱秴閿涙碍顕犵粔鎺嬧偓?
+          # 缁捐法鈻煎Ч鐘垫祲閸忔娊鍘ょ純?
+          threadPool:
+            threadCount: 25 # 缁捐法鈻煎Ч鐘层亣鐏忓繈鈧倿绮拋銈勮礋 10 閵?
+            threadPriority: 5 # 缁捐法鈻兼导妯哄帥缁?
+            class: org.quartz.simpl.SimpleThreadPool # 缁捐法鈻煎Ч鐘佃閸?
+    jdbc: # 娴ｈ法鏁?JDBC 閻?JobStore 閻ㄥ嫭妞傞崐娆欑礉JDBC 閻ㄥ嫰鍘ょ純?
+      initialize-schema: NEVER # 閺勵垰鎯侀懛顏勫З娴ｈ法鏁?SQL 閸掓繂顫愰崠?Quartz 鐞涖劎绮ㄩ弸鍕┾偓鍌濈箹闁插矁顔曠純顔藉灇 never 閿涘本鍨滄禒顒佸閸斻劌鍨卞楦裤€冪紒鎾寸€妴?
+
+--- #################### 濞戝牊浼呴梼鐔峰灙閻╃鍙?####################
+
+# rocketmq 闁板秶鐤嗘い鐧哥礉鐎电懓绨?RocketMQProperties 闁板秶鐤嗙猾?
+rocketmq:
+  name-server: 127.0.0.1:9876 # RocketMQ Namesrv
+
+spring:
+  # RabbitMQ 闁板秶鐤嗘い鐧哥礉鐎电懓绨?RabbitProperties 闁板秶鐤嗙猾?
+  rabbitmq:
+    host: 127.0.0.1 # RabbitMQ 閺堝秴濮熼惃鍕勾閸р偓
+    port: 5672 # RabbitMQ 閺堝秴濮熼惃鍕伂閸?
+    username: rabbit # RabbitMQ 閺堝秴濮熼惃鍕閸?
+    password: rabbit # RabbitMQ 閺堝秴濮熼惃鍕槕閻?
+  # Kafka 闁板秶鐤嗘い鐧哥礉鐎电懓绨?KafkaProperties 闁板秶鐤嗙猾?
+  kafka:
+    bootstrap-servers: 127.0.0.1:9092 # 閹稿洤鐣?Kafka Broker 閸︽澘娼冮敍灞藉讲娴犮儴顔曠純顔碱樋娑擃亷绱濇禒銉┾偓妤€褰块崚鍡涙
+
+--- #################### 閺堝秴濮熸穱婵嬫閻╃鍙ч柊宥囩枂 ####################
+
+# Lock4j 闁板秶鐤嗘い?
+lock4j:
+  acquire-timeout: 3000 # 閼惧嘲褰囬崚鍡楃瀵繘鏀ｇ搾鍛閺冨爼妫块敍宀勭帛鐠併倓璐?3000 濮ｎ偆顫?
+  expire: 30000 # 閸掑棗绔峰蹇涙敚閻ㄥ嫯绉撮弮鑸垫闂傝揪绱濇妯款吇娑?30000 濮ｎ偆顫?
+
+--- #################### 閻╂垶甯堕惄绋垮彠闁板秶鐤?####################
+
+# Actuator 閻╂垶甯剁粩顖滃仯閻ㄥ嫰鍘ょ純顕€銆?
+management:
+  endpoints:
+    web:
+      base-path: /actuator # Actuator 閹绘劒绶甸惃?API 閹恒儱褰涢惃鍕壌閻╊喖缍嶉妴鍌炵帛鐠併倓璐?/actuator
+      exposure:
+        include: '*' # 闂団偓鐟曚礁绱戦弨鍓ф畱缁旑垳鍋ｉ妴鍌炵帛鐠併倕鈧厧褰ч幍鎾崇磻 health 閸?info 娑撱倓閲滅粩顖滃仯閵嗗倿鈧俺绻冪拋鍓х枂 * 閿涘苯褰叉禒銉ョ磻閺€鐐閺堝顏悙骞库偓?
+
+# Spring Boot Admin 闁板秶鐤嗘い?
+spring:
+  boot:
+    admin:
+      # Spring Boot Admin Client 鐎广垺鍩涚粩顖滄畱閻╃鍙ч柊宥囩枂
+      client:
+        url: http://127.0.0.1:${server.port}/${spring.boot.admin.context-path} # 鐠佸墽鐤?Spring Boot Admin Server 閸︽澘娼?
+        instance:
+          service-host-type: IP # 濞夈劌鍞界€圭偘绶ラ弮璁圭礉娴兼ê鍘涙担璺ㄦ暏 IP [IP, HOST_NAME, CANONICAL_HOST_NAME]
+        username: admin
+        password: admin
+      # Spring Boot Admin Server 閺堝秴濮熺粩顖滄畱閻╃鍙ч柊宥囩枂
+      context-path: /admin # 闁板秶鐤?Spring
+      # 閸忎浇顔忓畵灞藉弳 iframe 閻ㄥ嫬鐓欓崥宥忕礄閺€顖涘瘮闁岸鍘ょ粭锔肩礆閿涘苯鐤勯梽鍛村劥缂冨弶妞傞敍灞藉讲娴犮儲鏁兼稉?"'self' [娴ｇ姷娈戦崗顒傜秹閸╃喎鎮昡"
+      frame-ancestors: "'self' localhost localhost:48080 127.0.0.1 127.0.0.1:48080"
+
+# 閺冦儱绻旈弬鍥︽闁板秶鐤?
+logging:
+  file:
+    name: ${user.home}/logs/${spring.application.name}.log # 閺冦儱绻旈弬鍥︽閸氬稄绱濋崗銊ㄧ熅瀵?
+  level:
+    # 闁板秶鐤嗛懛顏勭箒閸愭瑧娈?MyBatis Mapper 閹垫挸宓冮弮銉ョ箶
+    cn.iocoder.yudao.module.infra.dal.mysql: debug
+    cn.iocoder.yudao.module.infra.dal.mysql.logger.ApiErrorLogMapper: INFO # 闁板秶鐤?ApiErrorLogMapper 閻ㄥ嫭妫╄箛妤冮獓閸掝偂璐?info閿涘矂浼╅崗宥呮嫲 GlobalExceptionHandler 闁插秴顦查幍鎾冲祪
+    cn.iocoder.yudao.module.infra.dal.mysql.job.JobLogMapper: INFO # 闁板秶鐤?JobLogMapper 閻ㄥ嫭妫╄箛妤冮獓閸掝偂璐?info
+    cn.iocoder.yudao.module.infra.dal.mysql.file.FileConfigMapper: INFO # 闁板秶鐤?FileConfigMapper 閻ㄥ嫭妫╄箛妤冮獓閸掝偂璐?info
+    cn.iocoder.yudao.module.system.dal.mysql: debug
+    cn.iocoder.yudao.module.system.dal.mysql.sms.SmsChannelMapper: INFO # 闁板秶鐤?SmsChannelMapper 閻ㄥ嫭妫╄箛妤冮獓閸掝偂璐?info
+    cn.iocoder.yudao.module.tool.dal.mysql: debug
+    cn.iocoder.yudao.module.iot.dal.mysql: debug
+    cn.iocoder.yudao.module.iot.dal.tdengine: DEBUG
+    cn.iocoder.yudao.module.iot.service.rule: debug
+    cn.iocoder.yudao.module.ai.dal.mysql: debug
+    cn.iocoder.yudao.module.im.dal.mysql: debug
+    org.springframework.context.support.PostProcessorRegistrationDelegate: ERROR # TODO 閼哄澹欓敍姘帥缁備胶鏁ら敍瀛瞤ring Boot 3.X 鐎涙ê婀柈銊ュ瀻闁挎瑨顕ら惃?WARN 閹绘劗銇?
+
+debug: false
+
+--- #################### 瀵邦喕淇婇崗顑跨船閸欐灚鈧礁鐨粙瀣碍閻╃鍙ч柊宥囩枂 ####################
+wx:
+  miniapp: # 鐏忓繒鈻兼惔蹇涘帳缂冾噯绱欒箛鍛綖閿涘绱濋崣鍌濐潌 https://github.com/Wechat-Group/WxJava/blob/develop/spring-boot-starters/wx-java-miniapp-spring-boot-starter/README.md 閺傚洦銆?
+    #    appid: wx62056c0d5e8db250 # 濞村鐦崣鍑ょ礄閻楁稑绗囩亸褎褰佹笟娑氭畱閿?
+    #    secret: 333ae72f41552af1e998fe1f54e1584a
+#    appid: wx63c280fe3248a3e7 # wenhualian閻ㄥ嫭甯撮崣锝嗙ゴ鐠囨洖褰?
+#    secret: 6f270509224a7ae1296bbf1c8cb97aed
+    appid: wxc4598c446f8a9cb3 # 濞村鐦崣鍑ょ礄Kongdy 閹绘劒绶甸惃鍕剁礆
+    secret: 4a1a04e07f6a4a0751b39c3064a92c8b
+#    appid: wx66186af0759f47c9 # 濞村鐦崣鍑ょ礄puhui 閹绘劒绶甸惃鍕剁礆
+#    secret: 3218bcbd112cbc614c7264ceb20144ac
+    config-storage:
+      type: RedisTemplate # 闁插洨鏁?RedisTemplate 閹垮秳缍?Redis閿涘奔绱伴懛顏勫З娴?Spring 娑擃叀骞忛崣?
+      key-prefix: wa # Redis Key 閻ㄥ嫬澧犵紓鈧?
+      http-client-type: HttpComponents # 闁插洨鏁?HttpComponents閿涘湚ttpClient 5閿涘顕Ч鍌氫簳娣団€崇毈缁嬪绨獮鍐插酱
+
+--- #################### 閼哄浜鹃惄绋垮彠闁板秶鐤?####################
+
+# 閼哄浜鹃柊宥囩枂妞ょ櫢绱濈拋鍓х枂瑜版挸澧犳い鍦窗閹碘偓閺堝鍤滅€规矮绠熼惃鍕帳缂?
+yudao:
+  captcha:
+    enable: false # 閺堫剙婀撮悳顖氼暔閿涘本娈忛弮璺哄彠闂傤厼娴橀悧鍥崣鐠囦胶鐖滈敍灞炬煙娓氳法娅ヨぐ鏇犵搼閹恒儱褰涢惃鍕ゴ鐠囨洩绱?
+  security:
+    mock-enable: true
+  access-log: # 鐠佸潡妫堕弮銉ョ箶閻ㄥ嫰鍘ょ純顕€銆?
+    enable: false
+  demo: false # 閸忔娊妫村鏃傘仛濡€崇础
+  wxa-code:
+    env-version: develop # 鐏忓繒鈻兼惔蹇曞閺? 濮濓絽绱￠悧鍫滆礋 "release"閿涙稐缍嬫宀€澧楁稉?"trial"閿涙稑绱戦崣鎴犲娑?"develop"
+  wxa-subscribe-message:
+    miniprogram-state: developer # 鐠哄疇娴嗙亸蹇曗柤鎼村繒琚崹瀣剁窗瀵偓閸欐垹澧楁稉?閳ユ竸eveloper閳ユ繐绱辨担鎾荤崣閻楀牅璐?閳ユ涪rial閳ユ繀璐熼敍娑欘劀瀵繒澧楁稉?閳ユ竾ormal閳?
+  tencent-lbs-key: TVDBZ-TDILD-4ON4B-PFDZA-RNLKH-VVF6E # QQ 閸︽澘娴橀惃鍕槕闁?https://lbs.qq.com/service/staticV2/staticGuide/staticDoc
+
+justauth:
+  enabled: true
+  type:
+    DINGTALK: # 闁藉鎷?
+      client-id: dingvrnreaje3yqvzhxg
+      client-secret: i8E6iZyDvZj51JIb0tYsYfVQYOks9Cq1lgryEjFRqC79P3iJcrxEwT6Qk2QvLrLI
+      ignore-check-redirect-uri: true
+    WECHAT_ENTERPRISE: # 娴间椒绗熷顔讳繆
+      client-id: wwd411c69a39ad2e54
+      client-secret: 1wTb7hYxnpT2TUbIeHGXGo7T0odav1ic10mLdyyATOw
+      agent-id: 1000004
+      ignore-check-redirect-uri: true
+    # noinspection SpringBootApplicationYaml
+    WECHAT_MINI_PROGRAM: # 瀵邦喕淇婄亸蹇曗柤鎼?
+      client-id: ${wx.miniapp.appid}
+      client-secret: ${wx.miniapp.secret}
+      ignore-check-redirect-uri: true
+      ignore-check-state: true # 瀵邦喕淇婄亸蹇曗柤鎼村骏绱濇稉宥勭窗娴ｈ法鏁ら崚?state閿涘本澧嶆禒銉ょ瑝鏉╂稖顢戦弽锟犵崣
+    ALIPAY: # 閺€顖欑帛鐎规繂鐨粙瀣碍
+      client-id: xx
+      client-secret: xx
+      alipay-public-key: xx
+      ignore-check-redirect-uri: true
+      ignore-check-state: true
+  cache:
+    type: REDIS
+    prefix: 'social_auth_state:' # 缂傛挸鐡ㄩ崜宥囩磻閿涘瞼娲伴崜宥呭涧鐎?Redis 缂傛挸鐡ㄩ悽鐔告櫏閿涘矂绮拋?JUSTAUTH::STATE::
+    timeout: 24h # 鐡掑懏妞傞弮鍫曟毐閿涘瞼娲伴崜宥呭涧鐎?Redis 缂傛挸鐡ㄩ悽鐔告櫏閿涘矂绮拋?3 閸掑棝鎸?
+

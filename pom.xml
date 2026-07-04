@@ -1,0 +1,150 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <groupId>cn.iocoder.boot</groupId>
+    <artifactId>yudao</artifactId>
+    <version>${revision}</version>
+    <packaging>pom</packaging>
+    <modules>
+        <module>yudao-dependencies</module>
+        <module>yudao-framework</module>
+        <!-- Server 娑撳銆嶉惄?-->
+        <module>yudao-server</module>
+        <!-- 閸氬嫮顫?module 閹锋挸鐫?-->
+        <module>yudao-module-system</module>
+        <module>yudao-module-infra</module>
+<!--        <module>yudao-module-iot</module>-->
+        <module>yudao-module-im</module>
+<!-- 鐠囧嘲寮懓?https://doc.iocoder.cn/ai/build/ 閺傚洦銆傞敍灞界暚閹?AI 濡€虫健閻ㄥ嫬鎯庨崝顭掔磼閿涗緤绱?-->
+<!--        <module>yudao-module-ai</module>-->
+    </modules>
+
+    <name>${project.artifactId}</name>
+    <description>Yudao project</description>
+    <url>https://github.com/YunaiV/ruoyi-vue-pro</url>
+
+    <properties>
+        <revision>2026.06-jdk8-SNAPSHOT</revision>
+        <!-- Maven 閻╃鍙?-->
+        <java.version>1.8</java.version>
+        <maven.compiler.source>${java.version}</maven.compiler.source>
+        <maven.compiler.target>${java.version}</maven.compiler.target>
+        <maven-surefire-plugin.version>3.5.3</maven-surefire-plugin.version>
+        <maven-compiler-plugin.version>3.14.0</maven-compiler-plugin.version>
+        <flatten-maven-plugin.version>1.7.2</flatten-maven-plugin.version>
+        <!-- maven-surefire-plugin 閺嗗倹妞傞弮鐘崇《闁俺绻?bom 閻ㄥ嫪绶风挧鏍嚢閸欐牭绱欓崗鐓庮啇閼颁胶澧楅張?IDEA 2024 閸欏﹣浜掗崜宥囧閺堫剨绱?-->
+        <lombok.version>1.18.42</lombok.version>
+        <spring.boot.version>2.7.18</spring.boot.version>
+        <mapstruct.version>1.6.3</mapstruct.version>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    </properties>
+
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>cn.iocoder.boot</groupId>
+                <artifactId>yudao-dependencies</artifactId>
+                <version>${revision}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
+
+    <build>
+        <pluginManagement>
+            <plugins>
+                <!-- maven-surefire-plugin 閹绘帊娆㈤敍宀€鏁ゆ禍搴ょ箥鐞涘苯宕熼崗鍐╃ゴ鐠囨洏鈧?-->
+                <!-- 濞夈劍鍓伴敍宀勬付鐟曚椒濞囬悽?3.0.X+閿涘苯娲滄稉楦款洣閺€顖涘瘮 Junit 5 閻楀牊婀?-->
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-surefire-plugin</artifactId>
+                    <version>${maven-surefire-plugin.version}</version>
+                </plugin>
+                <!-- maven-compiler-plugin 閹绘帊娆㈤敍宀冃掗崘?spring-boot-configuration-processor + Lombok + MapStruct 缂佸嫬鎮?-->
+                <!-- https://stackoverflow.com/questions/33483697/re-run-spring-boot-configuration-annotation-processor-to-update-generated-metada -->
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-compiler-plugin</artifactId>
+                    <version>${maven-compiler-plugin.version}</version>
+                    <configuration>
+                        <annotationProcessorPaths>
+                            <path>
+                                <groupId>org.springframework.boot</groupId>
+                                <artifactId>spring-boot-configuration-processor</artifactId>
+                                <version>${spring.boot.version}</version>
+                            </path>
+                            <path>
+                                <groupId>org.projectlombok</groupId>
+                                <artifactId>lombok</artifactId>
+                                <version>${lombok.version}</version>
+                            </path>
+                            <path>
+                                <!-- 绾喕绻?Lombok 閻㈢喐鍨氶惃?getter/setter 閺傝纭堕懗鍊燁潶 MapStruct 濮濓絿鈥樼拠鍡楀焼閿?
+                                     闁灝鍘ら崙铏瑰箛 No property named 閳ユ釜xx" exists 閻ㄥ嫮绱拠鎴︽晩鐠?-->
+                                <groupId>org.projectlombok</groupId>
+                                <artifactId>lombok-mapstruct-binding</artifactId>
+                                <version>0.2.0</version>
+                            </path>
+                            <path>
+                                <groupId>org.mapstruct</groupId>
+                                <artifactId>mapstruct-processor</artifactId>
+                                <version>${mapstruct.version}</version>
+                            </path>
+                        </annotationProcessorPaths>
+                    </configuration>
+                </plugin>
+                <plugin>
+                    <groupId>org.codehaus.mojo</groupId>
+                    <artifactId>flatten-maven-plugin</artifactId>
+                </plugin>
+            </plugins>
+        </pluginManagement>
+
+        <plugins>
+            <!-- 缂佺喍绔?revision 閻楀牊婀?-->
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>flatten-maven-plugin</artifactId>
+                <version>${flatten-maven-plugin.version}</version>
+                <configuration>
+                    <flattenMode>oss</flattenMode>
+                    <updatePomFile>true</updatePomFile>
+                </configuration>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>flatten</goal>
+                        </goals>
+                        <id>flatten</id>
+                        <phase>process-resources</phase>
+                    </execution>
+                    <execution>
+                        <goals>
+                            <goal>clean</goal>
+                        </goals>
+                        <id>flatten.clean</id>
+                        <phase>clean</phase>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
+
+    <!-- 娴ｈ法鏁?huawei / aliyun 閻?Maven 濠ф劧绱濋幓鎰磳娑撳娴囬柅鐔峰 -->
+    <repositories>
+        <repository>
+            <id>huaweicloud</id>
+            <name>huawei</name>
+            <url>https://mirrors.huaweicloud.com/repository/maven/</url>
+        </repository>
+        <repository>
+            <id>aliyunmaven</id>
+            <name>aliyun</name>
+            <url>https://maven.aliyun.com/repository/public</url>
+        </repository>
+    </repositories>
+
+</project>
