@@ -38,8 +38,13 @@ nbdist/
 ######################################################################
 # Others
 *.log
+*.log.*
 *.xml.versionsBackup
 *.swp
+*.tmp
+*.temp
+hs_err_pid*
+replay_pid*
 
 !*/build/*.java
 !*/build/*.html
@@ -49,11 +54,38 @@ nbdist/
 rebel.xml
 
 application-my.yaml
+application-local.yaml
+application-local.yml
+application-dev.yaml
+application-dev.yml
+application-test.yaml
+application-test.yml
+bootstrap-local.yaml
+bootstrap-local.yml
+.env
+.env.local
+.env.*.local
 
 /yudao-ui-app/unpackage/
 .DS_Store
 **/.DS_Store
 outputs/
+logs/
+**/logs/
+**/target/
+**/node_modules/
+**/dist/
+**/dist-ssr/
+**/.vite/
+**/.cache/
+**/.history/
+**/coverage/
+**/.playwright-cli/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+.vscode/
 
 # Local Codex/debug artifacts
 .codex-temp-delete/
