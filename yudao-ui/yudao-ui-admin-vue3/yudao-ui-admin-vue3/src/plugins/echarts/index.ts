@@ -2,6 +2,7 @@ import * as echarts from 'echarts/core'
 
 import {
   BarChart,
+  CandlestickChart,
   FunnelChart,
   GaugeChart,
   LineChart,
@@ -38,6 +39,7 @@ echarts.use([
   ParallelComponent,
   VisualMapComponent,
   BarChart,
+  CandlestickChart,
   LineChart,
   PieChart,
   MapChart,

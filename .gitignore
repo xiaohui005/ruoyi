@@ -89,5 +89,6 @@ pnpm-debug.log*
 
 # Local Codex/debug artifacts
 .codex-temp-delete/
+.runtime/
 playwright-localhost*.png
 run-yudao-server-local.ps1

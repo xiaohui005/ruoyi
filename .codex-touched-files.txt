@@ -1,0 +1,8 @@
+yudao-module-stock/src/main/java/cn/iocoder/yudao/module/stock/service/calendar/StockTradeCalendarService.java
+yudao-module-stock/src/main/java/cn/iocoder/yudao/module/stock/service/calendar/StockTradeCalendarServiceImpl.java
+yudao-module-stock/src/main/java/cn/iocoder/yudao/module/stock/framework/config/StockProperties.java
+yudao-module-stock/src/main/java/cn/iocoder/yudao/module/stock/job/StockWatchlistAnalyzeJob.java
+yudao-module-stock/src/main/java/cn/iocoder/yudao/module/stock/job/StockMarketCollectJob.java
+yudao-module-stock/src/main/java/cn/iocoder/yudao/module/stock/service/recommend/StockRecommendServiceImpl.java
+yudao-module-stock/src/main/java/cn/iocoder/yudao/module/stock/service/data/StockDataServiceImpl.java
+yudao-module-stock/src/test/java/cn/iocoder/yudao/module/stock/service/calendar/StockTradeCalendarServiceImplTest.java

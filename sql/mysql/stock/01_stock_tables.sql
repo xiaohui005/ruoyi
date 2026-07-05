@@ -1,0 +1,267 @@
+-- 股票分析与提醒系统建表脚本
+-- 说明：
+-- 1. 严格对应 yudao-module-stock 当前 DO 结构
+-- 2. 仅创建 stock 独立业务表，不修改 system 等框架内置业务表
+-- 3. 生产运行以真实数据为主，本脚本中的演示数据由 03_stock_seed.sql 负责
+
+CREATE TABLE IF NOT EXISTS `stock_basic_info` (
+  `tenant_id` BIGINT NOT NULL DEFAULT 1 COMMENT '租户编号',
+  `id` BIGINT NOT NULL AUTO_INCREMENT COMMENT '主键',
+  `symbol` VARCHAR(32) NOT NULL COMMENT '股票代码，例如 600519.SH',
+  `name` VARCHAR(64) NOT NULL COMMENT '股票名称',
+  `exchange` VARCHAR(16) DEFAULT NULL COMMENT '交易所',
+  `industry` VARCHAR(64) DEFAULT NULL COMMENT '行业',
+  `concepts` VARCHAR(512) DEFAULT NULL COMMENT '概念标签，逗号分隔',
+  `status` TINYINT NOT NULL DEFAULT 0 COMMENT '状态，0-正常 1-停用',
+  `creator` VARCHAR(64) DEFAULT '' COMMENT '创建者',
+  `create_time` DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+  `updater` VARCHAR(64) DEFAULT '' COMMENT '更新者',
+  `update_time` DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+  `deleted` BIT(1) NOT NULL DEFAULT b'0' COMMENT '是否删除',
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uk_stock_basic_info_symbol` (`symbol`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='股票基础信息表';
+
+CREATE TABLE IF NOT EXISTS `stock_market_snapshot` (
+  `tenant_id` BIGINT NOT NULL DEFAULT 1 COMMENT '租户编号',
+  `id` BIGINT NOT NULL AUTO_INCREMENT COMMENT '主键',
+  `trade_date` DATE NOT NULL COMMENT '交易日期',
+  `snapshot_time` DATETIME NOT NULL COMMENT '快照时间',
+  `index_code` VARCHAR(32) NOT NULL COMMENT '指数代码',
+  `index_name` VARCHAR(64) NOT NULL COMMENT '指数名称',
+  `index_close` DECIMAL(18,4) DEFAULT NULL COMMENT '指数收盘/最新值',
+  `index_change_pct` DECIMAL(10,4) DEFAULT NULL COMMENT '指数涨跌幅',
+  `turnover_amount` DECIMAL(20,2) DEFAULT NULL COMMENT '市场成交额',
+  `turnover_ratio` DECIMAL(10,4) DEFAULT NULL COMMENT '放量比',
+  `limit_up_count` INT DEFAULT 0 COMMENT '涨停家数',
+  `limit_down_count` INT DEFAULT 0 COMMENT '跌停家数',
+  `rising_count` INT DEFAULT 0 COMMENT '上涨家数',
+  `falling_count` INT DEFAULT 0 COMMENT '下跌家数',
+  `hot_theme` VARCHAR(128) DEFAULT NULL COMMENT '热点题材',
+  `theme_limit_up_count` INT DEFAULT 0 COMMENT '热点题材涨停数',
+  `source_name` VARCHAR(32) DEFAULT NULL COMMENT '数据源',
+  `raw_payload` LONGTEXT COMMENT '原始快照 JSON',
+  `creator` VARCHAR(64) DEFAULT '' COMMENT '创建者',
+  `create_time` DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+  `updater` VARCHAR(64) DEFAULT '' COMMENT '更新者',
+  `update_time` DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+  `deleted` BIT(1) NOT NULL DEFAULT b'0' COMMENT '是否删除',
+  PRIMARY KEY (`id`),
+  KEY `idx_stock_market_snapshot_trade_date` (`trade_date`, `snapshot_time`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='市场快照表';
+
+CREATE TABLE IF NOT EXISTS `stock_market_signal_record` (
+  `tenant_id` BIGINT NOT NULL DEFAULT 1 COMMENT '租户编号',
+  `id` BIGINT NOT NULL AUTO_INCREMENT COMMENT '主键',
+  `trade_date` DATE NOT NULL COMMENT '交易日期',
+  `signal_code` VARCHAR(64) NOT NULL COMMENT '节点编码',
+  `signal_name` VARCHAR(128) NOT NULL COMMENT '节点名称',
+  `tradable` BIT(1) NOT NULL DEFAULT b'0' COMMENT '是否允许交易',
+  `risk_level` VARCHAR(32) NOT NULL COMMENT '风险等级',
+  `reason_text` VARCHAR(1024) DEFAULT NULL COMMENT '触发原因说明',
+  `snapshot_id` BIGINT DEFAULT NULL COMMENT '关联市场快照 ID',
+  `creator` VARCHAR(64) DEFAULT '' COMMENT '创建者',
+  `create_time` DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+  `updater` VARCHAR(64) DEFAULT '' COMMENT '更新者',
+  `update_time` DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+  `deleted` BIT(1) NOT NULL DEFAULT b'0' COMMENT '是否删除',
+  PRIMARY KEY (`id`),
+  KEY `idx_stock_market_signal_record_trade_date` (`trade_date`, `signal_code`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='市场节点识别记录表';
+
+CREATE TABLE IF NOT EXISTS `stock_kline_daily` (
+  `tenant_id` BIGINT NOT NULL DEFAULT 1 COMMENT '租户编号',
+  `id` BIGINT NOT NULL AUTO_INCREMENT COMMENT '主键',
+  `symbol` VARCHAR(32) NOT NULL COMMENT '股票代码',
+  `trade_date` DATE NOT NULL COMMENT '交易日期',
+  `open_price` DECIMAL(18,4) DEFAULT NULL COMMENT '开盘价',
+  `high_price` DECIMAL(18,4) DEFAULT NULL COMMENT '最高价',
+  `low_price` DECIMAL(18,4) DEFAULT NULL COMMENT '最低价',
+  `close_price` DECIMAL(18,4) DEFAULT NULL COMMENT '收盘价',
+  `pre_close_price` DECIMAL(18,4) DEFAULT NULL COMMENT '前收盘价',
+  `change_pct` DECIMAL(10,4) DEFAULT NULL COMMENT '涨跌幅',
+  `volume` DECIMAL(20,2) DEFAULT NULL COMMENT '成交量',
+  `turnover_amount` DECIMAL(20,2) DEFAULT NULL COMMENT '成交额',
+  `source_name` VARCHAR(32) DEFAULT NULL COMMENT '数据源',
+  `creator` VARCHAR(64) DEFAULT '' COMMENT '创建者',
+  `create_time` DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+  `updater` VARCHAR(64) DEFAULT '' COMMENT '更新者',
+  `update_time` DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+  `deleted` BIT(1) NOT NULL DEFAULT b'0' COMMENT '是否删除',
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uk_stock_kline_daily_symbol_date` (`symbol`, `trade_date`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='股票日线数据表';
+
+CREATE TABLE IF NOT EXISTS `stock_analysis_config` (
+  `tenant_id` BIGINT NOT NULL DEFAULT 1 COMMENT '租户编号',
+  `id` BIGINT NOT NULL AUTO_INCREMENT COMMENT '主键',
+  `config_key` VARCHAR(64) NOT NULL COMMENT '配置键',
+  `config_name` VARCHAR(128) NOT NULL COMMENT '配置名称',
+  `config_value` VARCHAR(256) NOT NULL COMMENT '配置值',
+  `remark` VARCHAR(512) DEFAULT NULL COMMENT '备注',
+  `creator` VARCHAR(64) DEFAULT '' COMMENT '创建者',
+  `create_time` DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+  `updater` VARCHAR(64) DEFAULT '' COMMENT '更新者',
+  `update_time` DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+  `deleted` BIT(1) NOT NULL DEFAULT b'0' COMMENT '是否删除',
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uk_stock_analysis_config_key` (`config_key`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='分析配置表';
+
+CREATE TABLE IF NOT EXISTS `stock_watchlist` (
+  `tenant_id` BIGINT NOT NULL DEFAULT 1 COMMENT '租户编号',
+  `id` BIGINT NOT NULL AUTO_INCREMENT COMMENT '主键',
+  `user_id` BIGINT NOT NULL COMMENT '用户 ID',
+  `symbol` VARCHAR(32) NOT NULL COMMENT '股票代码',
+  `name` VARCHAR(64) NOT NULL COMMENT '股票名称',
+  `collect_level` VARCHAR(16) NOT NULL COMMENT '采集级别',
+  `collect_interval_minutes` INT NOT NULL DEFAULT 5 COMMENT '采集间隔，分钟',
+  `enable_monitor` BIT(1) NOT NULL DEFAULT b'1' COMMENT '是否启用监控',
+  `enable_intraday` BIT(1) NOT NULL DEFAULT b'0' COMMENT '是否采集分时',
+  `enable_t_strategy` BIT(1) NOT NULL DEFAULT b'1' COMMENT '是否启用做T分析',
+  `enable_price_alert` BIT(1) NOT NULL DEFAULT b'1' COMMENT '是否启用价格提醒',
+  `enable_signal_alert` BIT(1) NOT NULL DEFAULT b'1' COMMENT '是否启用信号提醒',
+  `latest_collect_time` DATETIME DEFAULT NULL COMMENT '最近采集时间',
+  `latest_analyze_time` DATETIME DEFAULT NULL COMMENT '最近分析时间',
+  `latest_alert_time` DATETIME DEFAULT NULL COMMENT '最近提醒时间',
+  `latest_advice` VARCHAR(512) DEFAULT NULL COMMENT '最新建议',
+  `remark` VARCHAR(512) DEFAULT NULL COMMENT '备注',
+  `creator` VARCHAR(64) DEFAULT '' COMMENT '创建者',
+  `create_time` DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+  `updater` VARCHAR(64) DEFAULT '' COMMENT '更新者',
+  `update_time` DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+  `deleted` BIT(1) NOT NULL DEFAULT b'0' COMMENT '是否删除',
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uk_stock_watchlist_user_symbol` (`user_id`, `symbol`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='自选股监控表';
+
+CREATE TABLE IF NOT EXISTS `stock_analysis_record` (
+  `tenant_id` BIGINT NOT NULL DEFAULT 1 COMMENT '租户编号',
+  `id` BIGINT NOT NULL AUTO_INCREMENT COMMENT '主键',
+  `user_id` BIGINT DEFAULT NULL COMMENT '用户 ID',
+  `watchlist_id` BIGINT DEFAULT NULL COMMENT '自选股 ID',
+  `symbol` VARCHAR(32) NOT NULL COMMENT '股票代码',
+  `stock_name` VARCHAR(64) NOT NULL COMMENT '股票名称',
+  `market_signal_code` VARCHAR(64) DEFAULT NULL COMMENT '市场节点编码',
+  `market_signal_name` VARCHAR(128) DEFAULT NULL COMMENT '市场节点名称',
+  `volume_price_type` VARCHAR(64) DEFAULT NULL COMMENT '量价关系类型',
+  `price_position` VARCHAR(32) DEFAULT NULL COMMENT '价格位置',
+  `volume_price_advice` VARCHAR(255) DEFAULT NULL COMMENT '量价建议',
+  `t_strategy_suitable` BIT(1) NOT NULL DEFAULT b'0' COMMENT '是否适合做T',
+  `advice_action` VARCHAR(32) DEFAULT NULL COMMENT '综合建议动作',
+  `reason_text` VARCHAR(1024) DEFAULT NULL COMMENT '分析原因',
+  `risk_level` VARCHAR(32) DEFAULT NULL COMMENT '风险等级',
+  `source_name` VARCHAR(32) DEFAULT NULL COMMENT '数据源',
+  `creator` VARCHAR(64) DEFAULT '' COMMENT '创建者',
+  `create_time` DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+  `updater` VARCHAR(64) DEFAULT '' COMMENT '更新者',
+  `update_time` DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+  `deleted` BIT(1) NOT NULL DEFAULT b'0' COMMENT '是否删除',
+  PRIMARY KEY (`id`),
+  KEY `idx_stock_analysis_record_symbol_time` (`symbol`, `create_time`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='股票分析记录表';
+
+CREATE TABLE IF NOT EXISTS `stock_t_strategy_record` (
+  `tenant_id` BIGINT NOT NULL DEFAULT 1 COMMENT '租户编号',
+  `id` BIGINT NOT NULL AUTO_INCREMENT COMMENT '主键',
+  `analysis_record_id` BIGINT DEFAULT NULL COMMENT '关联分析记录 ID',
+  `symbol` VARCHAR(32) NOT NULL COMMENT '股票代码',
+  `suitable` BIT(1) NOT NULL DEFAULT b'0' COMMENT '是否适合做T',
+  `support_price` DECIMAL(18,4) DEFAULT NULL COMMENT '支撑位',
+  `resistance_price` DECIMAL(18,4) DEFAULT NULL COMMENT '压力位',
+  `buy_low_price` DECIMAL(18,4) DEFAULT NULL COMMENT '买入区间下沿',
+  `buy_high_price` DECIMAL(18,4) DEFAULT NULL COMMENT '买入区间上沿',
+  `sell_low_price` DECIMAL(18,4) DEFAULT NULL COMMENT '卖出区间下沿',
+  `sell_high_price` DECIMAL(18,4) DEFAULT NULL COMMENT '卖出区间上沿',
+  `position_ratio` DECIMAL(10,4) DEFAULT NULL COMMENT '建议仓位比例',
+  `invalid_condition` VARCHAR(512) DEFAULT NULL COMMENT '失效条件',
+  `reason_text` VARCHAR(1024) DEFAULT NULL COMMENT '做T原因说明',
+  `creator` VARCHAR(64) DEFAULT '' COMMENT '创建者',
+  `create_time` DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+  `updater` VARCHAR(64) DEFAULT '' COMMENT '更新者',
+  `update_time` DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+  `deleted` BIT(1) NOT NULL DEFAULT b'0' COMMENT '是否删除',
+  PRIMARY KEY (`id`),
+  KEY `idx_stock_t_strategy_record_symbol_time` (`symbol`, `create_time`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='做T策略记录表';
+
+CREATE TABLE IF NOT EXISTS `stock_alert_channel` (
+  `tenant_id` BIGINT NOT NULL DEFAULT 1 COMMENT '租户编号',
+  `id` BIGINT NOT NULL AUTO_INCREMENT COMMENT '主键',
+  `user_id` BIGINT NOT NULL COMMENT '用户 ID',
+  `channel_code` VARCHAR(32) NOT NULL COMMENT '提醒渠道编码',
+  `channel_name` VARCHAR(64) NOT NULL COMMENT '提醒渠道名称',
+  `enabled` BIT(1) NOT NULL DEFAULT b'1' COMMENT '是否启用',
+  `config_json` TEXT COMMENT '渠道配置 JSON',
+  `creator` VARCHAR(64) DEFAULT '' COMMENT '创建者',
+  `create_time` DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+  `updater` VARCHAR(64) DEFAULT '' COMMENT '更新者',
+  `update_time` DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+  `deleted` BIT(1) NOT NULL DEFAULT b'0' COMMENT '是否删除',
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uk_stock_alert_channel_user_code` (`user_id`, `channel_code`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='提醒渠道表';
+
+CREATE TABLE IF NOT EXISTS `stock_alert_rule` (
+  `tenant_id` BIGINT NOT NULL DEFAULT 1 COMMENT '租户编号',
+  `id` BIGINT NOT NULL AUTO_INCREMENT COMMENT '主键',
+  `user_id` BIGINT NOT NULL COMMENT '用户 ID',
+  `watchlist_id` BIGINT DEFAULT NULL COMMENT '自选股 ID',
+  `rule_name` VARCHAR(128) NOT NULL COMMENT '规则名称',
+  `rule_type` VARCHAR(64) NOT NULL COMMENT '规则类型',
+  `enabled` BIT(1) NOT NULL DEFAULT b'1' COMMENT '是否启用',
+  `cooldown_minutes` INT NOT NULL DEFAULT 30 COMMENT '冷却分钟数',
+  `rule_json` TEXT COMMENT '规则配置 JSON',
+  `creator` VARCHAR(64) DEFAULT '' COMMENT '创建者',
+  `create_time` DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+  `updater` VARCHAR(64) DEFAULT '' COMMENT '更新者',
+  `update_time` DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+  `deleted` BIT(1) NOT NULL DEFAULT b'0' COMMENT '是否删除',
+  PRIMARY KEY (`id`),
+  KEY `idx_stock_alert_rule_user_watchlist` (`user_id`, `watchlist_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='提醒规则表';
+
+CREATE TABLE IF NOT EXISTS `stock_alert_record` (
+  `tenant_id` BIGINT NOT NULL DEFAULT 1 COMMENT '租户编号',
+  `id` BIGINT NOT NULL AUTO_INCREMENT COMMENT '主键',
+  `user_id` BIGINT NOT NULL COMMENT '用户 ID',
+  `watchlist_id` BIGINT DEFAULT NULL COMMENT '自选股 ID',
+  `rule_id` BIGINT DEFAULT NULL COMMENT '规则 ID',
+  `channel_code` VARCHAR(32) NOT NULL COMMENT '提醒渠道编码',
+  `symbol` VARCHAR(32) DEFAULT NULL COMMENT '股票代码',
+  `alert_type` VARCHAR(64) NOT NULL COMMENT '提醒类型',
+  `trigger_value` VARCHAR(255) DEFAULT NULL COMMENT '触发值',
+  `content` VARCHAR(1024) DEFAULT NULL COMMENT '提醒内容',
+  `send_status` VARCHAR(32) NOT NULL COMMENT '发送状态',
+  `send_time` DATETIME DEFAULT NULL COMMENT '发送时间',
+  `response_text` VARCHAR(1024) DEFAULT NULL COMMENT '渠道响应',
+  `creator` VARCHAR(64) DEFAULT '' COMMENT '创建者',
+  `create_time` DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+  `updater` VARCHAR(64) DEFAULT '' COMMENT '更新者',
+  `update_time` DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+  `deleted` BIT(1) NOT NULL DEFAULT b'0' COMMENT '是否删除',
+  PRIMARY KEY (`id`),
+  KEY `idx_stock_alert_record_user_time` (`user_id`, `create_time`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='提醒发送记录表';
+
+CREATE TABLE IF NOT EXISTS `stock_trade_journal` (
+  `tenant_id` BIGINT NOT NULL DEFAULT 1 COMMENT '租户编号',
+  `id` BIGINT NOT NULL AUTO_INCREMENT COMMENT '主键',
+  `user_id` BIGINT NOT NULL COMMENT '用户 ID',
+  `symbol` VARCHAR(32) NOT NULL COMMENT '股票代码',
+  `stock_name` VARCHAR(64) NOT NULL COMMENT '股票名称',
+  `buy_price` DECIMAL(18,4) DEFAULT NULL COMMENT '买入价',
+  `sell_price` DECIMAL(18,4) DEFAULT NULL COMMENT '卖出价',
+  `position_ratio` DECIMAL(10,4) DEFAULT NULL COMMENT '仓位比例',
+  `profit_rate` DECIMAL(10,4) DEFAULT NULL COMMENT '收益率',
+  `system_advice` VARCHAR(512) DEFAULT NULL COMMENT '系统建议',
+  `remark` VARCHAR(1024) DEFAULT NULL COMMENT '复盘备注',
+  `trade_time` DATETIME NOT NULL COMMENT '交易时间',
+  `creator` VARCHAR(64) DEFAULT '' COMMENT '创建者',
+  `create_time` DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+  `updater` VARCHAR(64) DEFAULT '' COMMENT '更新者',
+  `update_time` DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+  `deleted` BIT(1) NOT NULL DEFAULT b'0' COMMENT '是否删除',
+  PRIMARY KEY (`id`),
+  KEY `idx_stock_trade_journal_user_symbol` (`user_id`, `symbol`, `trade_time`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='交易复盘记录表';

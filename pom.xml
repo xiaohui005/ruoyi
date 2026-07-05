@@ -17,6 +17,7 @@
         <module>yudao-module-infra</module>
 <!--        <module>yudao-module-iot</module>-->
         <module>yudao-module-im</module>
+        <module>yudao-module-stock</module>
 <!-- 鐠囧嘲寮懓?https://doc.iocoder.cn/ai/build/ 閺傚洦銆傞敍灞界暚閹?AI 濡€虫健閻ㄥ嫬鎯庨崝顭掔磼閿涗緤绱?-->
 <!--        <module>yudao-module-ai</module>-->
     </modules>
