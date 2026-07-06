@@ -56,6 +56,19 @@ export const deleteWatchlist = (id: number) => {
   return request.delete({ url: '/stock/watchlist/delete?id=' + id })
 }
 
+export const manualCollectWatchlist = (id: number) => {
+  return request.post<StockWatchlistRespVO>({
+    url: '/stock/watchlist/manual-collect',
+    params: { id }
+  })
+}
+
+export const manualCollectAllWatchlist = () => {
+  return request.post<number>({
+    url: '/stock/watchlist/manual-collect-all'
+  })
+}
+
 export const getWatchlistRuntimeState = (id: number) => {
   return request.get<StockWatchlistRuntimeStateRespVO>({
     url: '/stock/watchlist/runtime-state',

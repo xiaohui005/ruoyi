@@ -3,14 +3,18 @@ package cn.iocoder.yudao.module.system.controller.admin.user;
 import cn.hutool.core.collection.CollUtil;
 import cn.iocoder.yudao.framework.common.pojo.CommonResult;
 import cn.iocoder.yudao.framework.datapermission.core.annotation.DataPermission;
+import cn.iocoder.yudao.module.system.controller.admin.user.vo.profile.UserMessagePushProfileRespVO;
+import cn.iocoder.yudao.module.system.controller.admin.user.vo.profile.UserMessagePushProfileUpdateReqVO;
 import cn.iocoder.yudao.module.system.controller.admin.user.vo.profile.UserProfileRespVO;
 import cn.iocoder.yudao.module.system.controller.admin.user.vo.profile.UserProfileUpdatePasswordReqVO;
 import cn.iocoder.yudao.module.system.controller.admin.user.vo.profile.UserProfileUpdateReqVO;
 import cn.iocoder.yudao.module.system.convert.user.UserConvert;
+import cn.iocoder.yudao.module.system.dal.dataobject.messagepush.SystemMessagePushUserConfigDO;
 import cn.iocoder.yudao.module.system.dal.dataobject.dept.DeptDO;
 import cn.iocoder.yudao.module.system.dal.dataobject.dept.PostDO;
 import cn.iocoder.yudao.module.system.dal.dataobject.permission.RoleDO;
 import cn.iocoder.yudao.module.system.dal.dataobject.user.AdminUserDO;
+import cn.iocoder.yudao.module.system.service.messagepush.SystemMessagePushUserConfigService;
 import cn.iocoder.yudao.module.system.service.dept.DeptService;
 import cn.iocoder.yudao.module.system.service.dept.PostService;
 import cn.iocoder.yudao.module.system.service.permission.PermissionService;
@@ -46,6 +50,8 @@ public class UserProfileController {
     private PermissionService permissionService;
     @Resource
     private RoleService roleService;
+    @Resource
+    private SystemMessagePushUserConfigService systemMessagePushUserConfigService;
 
     @GetMapping("/get")
     @Operation(summary = "获得登录用户信息")
@@ -73,6 +79,27 @@ public class UserProfileController {
     @Operation(summary = "修改用户个人密码")
     public CommonResult<Boolean> updateUserProfilePassword(@Valid @RequestBody UserProfileUpdatePasswordReqVO reqVO) {
         userService.updateUserPassword(getLoginUserId(), reqVO);
+        return success(true);
+    }
+
+    @GetMapping("/message-push/get")
+    @Operation(summary = "获得当前登录用户的消息推送配置")
+    public CommonResult<UserMessagePushProfileRespVO> getUserMessagePushProfile() {
+        SystemMessagePushUserConfigDO config = systemMessagePushUserConfigService.getBarkConfig(getLoginUserId());
+        UserMessagePushProfileRespVO respVO = new UserMessagePushProfileRespVO();
+        respVO.setEnabled(config.getEnabled());
+        respVO.setServerUrl(config.getEndpoint());
+        respVO.setDeviceKey(config.getSecretKey());
+        respVO.setReceiveSystemMessage(config.getReceiveSystemMessage());
+        respVO.setReceiveNotificationMessage(config.getReceiveNotificationMessage());
+        respVO.setReceiveStockAlert(config.getReceiveStockAlert());
+        return success(respVO);
+    }
+
+    @PutMapping("/message-push/update")
+    @Operation(summary = "修改当前登录用户的消息推送配置")
+    public CommonResult<Boolean> updateUserMessagePushProfile(@Valid @RequestBody UserMessagePushProfileUpdateReqVO reqVO) {
+        systemMessagePushUserConfigService.saveBarkConfig(getLoginUserId(), reqVO);
         return success(true);
     }
 

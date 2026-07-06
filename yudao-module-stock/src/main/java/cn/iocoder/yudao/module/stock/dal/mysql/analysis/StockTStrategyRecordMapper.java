@@ -17,6 +17,13 @@ public interface StockTStrategyRecordMapper extends BaseMapperX<StockTStrategyRe
                 .last("LIMIT 1"));
     }
 
+    default StockTStrategyRecordDO selectByAnalysisRecordId(Long analysisRecordId) {
+        return selectOne(new LambdaQueryWrapperX<StockTStrategyRecordDO>()
+                .eq(StockTStrategyRecordDO::getAnalysisRecordId, analysisRecordId)
+                .orderByDesc(StockTStrategyRecordDO::getCreateTime)
+                .last("LIMIT 1"));
+    }
+
     default int deleteByAnalysisRecordIds(Collection<Long> analysisRecordIds) {
         return deleteBatch(StockTStrategyRecordDO::getAnalysisRecordId, analysisRecordIds);
     }

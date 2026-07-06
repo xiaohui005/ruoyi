@@ -3,6 +3,7 @@ package cn.iocoder.yudao.framework.common.util.json.databind;
 import cn.hutool.core.util.ObjUtil;
 import cn.hutool.core.util.ReflectUtil;
 import cn.hutool.core.util.StrUtil;
+import cn.iocoder.yudao.framework.common.util.date.DateUtils;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.core.JsonGenerator;
@@ -13,16 +14,16 @@ import lombok.extern.slf4j.Slf4j;
 import java.io.IOException;
 import java.lang.reflect.Field;
 import java.time.LocalDateTime;
-import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
- * 基于时间戳的 LocalDateTime 序列化器
+ * Global LocalDateTime serializer.
  *
- * @author 老五
+ * Default output is a formatted date-time string. Field-level {@link JsonFormat}
+ * still takes precedence when present.
  */
 @Slf4j
 public class TimestampLocalDateTimeSerializer extends JsonSerializer<LocalDateTime> {
@@ -30,10 +31,11 @@ public class TimestampLocalDateTimeSerializer extends JsonSerializer<LocalDateTi
     public static final TimestampLocalDateTimeSerializer INSTANCE = new TimestampLocalDateTimeSerializer();
 
     private static final Map<Class<?>, Map<String, Field>> FIELD_CACHE = new ConcurrentHashMap<>();
+    private static final DateTimeFormatter DEFAULT_FORMATTER =
+            DateTimeFormatter.ofPattern(DateUtils.FORMAT_YEAR_MONTH_DAY_HOUR_MINUTE_SECOND);
 
     @Override
     public void serialize(LocalDateTime value, JsonGenerator gen, SerializerProvider serializers) throws IOException {
-        // 情况一：有 JsonFormat 自定义注解，则使用它。https://github.com/YunaiV/ruoyi-vue-pro/pull/1019
         String fieldName = gen.getOutputContext().getCurrentName();
         if (fieldName != null) {
             Object currentValue = gen.getOutputContext().getCurrentValue();
@@ -41,7 +43,6 @@ public class TimestampLocalDateTimeSerializer extends JsonSerializer<LocalDateTi
                 Class<?> clazz = currentValue.getClass();
                 Map<String, Field> fieldMap = FIELD_CACHE.computeIfAbsent(clazz, this::buildFieldMap);
                 Field field = fieldMap.get(fieldName);
-                // 进一步修复：https://gitee.com/zhijiantianya/ruoyi-vue-pro/pulls/1480
                 if (field != null && field.isAnnotationPresent(JsonFormat.class)) {
                     JsonFormat jsonFormat = field.getAnnotation(JsonFormat.class);
                     try {
@@ -49,23 +50,16 @@ public class TimestampLocalDateTimeSerializer extends JsonSerializer<LocalDateTi
                         gen.writeString(formatter.format(value));
                         return;
                     } catch (Exception ex) {
-                        log.warn("[serialize][({}#{}) 使用 JsonFormat pattern 失败，尝试使用默认的 Long 时间戳]",
+                        log.warn("[serialize][({}#{}) failed to apply JsonFormat pattern, fallback to default format]",
                                 clazz.getName(), fieldName, ex);
                     }
                 }
             }
         }
 
-        // 情况二：默认将 LocalDateTime 对象，转换为 Long 时间戳
-        gen.writeNumber(value.atZone(ZoneId.systemDefault()).toInstant().toEpochMilli());
+        gen.writeString(DEFAULT_FORMATTER.format(value));
     }
 
-    /**
-     * 构建字段映射（缓存）
-     *
-     * @param clazz 类
-     * @return 字段映射
-     */
     private Map<String, Field> buildFieldMap(Class<?> clazz) {
         Map<String, Field> fieldMap = new HashMap<>();
         for (Field field : ReflectUtil.getFields(clazz)) {

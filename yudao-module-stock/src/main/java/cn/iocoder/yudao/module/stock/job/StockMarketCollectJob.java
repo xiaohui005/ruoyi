@@ -1,6 +1,7 @@
 package cn.iocoder.yudao.module.stock.job;
 
 import cn.iocoder.yudao.framework.quartz.core.handler.JobHandler;
+import cn.iocoder.yudao.framework.tenant.core.job.TenantJob;
 import cn.iocoder.yudao.module.stock.service.calendar.StockTradeCalendarService;
 import cn.iocoder.yudao.module.stock.service.market.StockMarketSignalService;
 import cn.iocoder.yudao.module.stock.service.market.dto.MarketSignalResultDTO;
@@ -18,6 +19,7 @@ public class StockMarketCollectJob implements JobHandler {
     private StockTradeCalendarService stockTradeCalendarService;
 
     @Override
+    @TenantJob
     public String execute(String param) {
         if (!stockTradeCalendarService.canCollectNow(LocalDateTime.now())) {
             return "skip-market-closed";

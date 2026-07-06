@@ -3,6 +3,7 @@ package cn.iocoder.yudao.module.system.service.notify;
 import cn.iocoder.yudao.framework.common.enums.CommonStatusEnum;
 import cn.iocoder.yudao.framework.common.enums.UserTypeEnum;
 import cn.iocoder.yudao.module.system.dal.dataobject.notify.NotifyTemplateDO;
+import cn.iocoder.yudao.module.system.service.messagepush.SystemMessagePushService;
 import com.google.common.annotations.VisibleForTesting;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -30,6 +31,8 @@ public class NotifySendServiceImpl implements NotifySendService {
 
     @Resource
     private NotifyMessageService notifyMessageService;
+    @Resource
+    private SystemMessagePushService systemMessagePushService;
 
     @Override
     public Long sendSingleNotifyToAdmin(Long userId, String templateCode, Map<String, Object> templateParams) {
@@ -54,7 +57,9 @@ public class NotifySendServiceImpl implements NotifySendService {
 
         // 发送站内信
         String content = notifyTemplateService.formatNotifyTemplateContent(template.getContent(), templateParams);
-        return notifyMessageService.createNotifyMessage(userId, userType, template, content, templateParams);
+        Long messageId = notifyMessageService.createNotifyMessage(userId, userType, template, content, templateParams);
+        systemMessagePushService.pushNotifyMessage(userId, userType, template, content, templateParams);
+        return messageId;
     }
 
     @VisibleForTesting

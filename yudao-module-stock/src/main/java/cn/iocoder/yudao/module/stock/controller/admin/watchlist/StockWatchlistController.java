@@ -70,6 +70,22 @@ public class StockWatchlistController {
         return success(true);
     }
 
+    @PostMapping("/manual-collect")
+    @Operation(summary = "手动采集自选股最新数据")
+    @Parameter(name = "id", required = true)
+    @PreAuthorize("@ss.hasPermission('stock:watchlist:update')")
+    public CommonResult<StockWatchlistRespVO> manualCollect(@RequestParam("id") Long id) {
+        StockWatchlistDO watchlist = stockWatchlistService.manualCollect(id, SecurityFrameworkUtils.getLoginUserId());
+        return success(buildWatchlistRespVO(watchlist));
+    }
+
+    @PostMapping("/manual-collect-all")
+    @Operation(summary = "一键采集自选股最新价格")
+    @PreAuthorize("@ss.hasPermission('stock:watchlist:update')")
+    public CommonResult<Integer> manualCollectAll() {
+        return success(stockWatchlistService.manualCollectAll(SecurityFrameworkUtils.getLoginUserId()));
+    }
+
     @GetMapping("/page")
     @Operation(summary = "分页获取自选股")
     @PreAuthorize("@ss.hasPermission('stock:watchlist:query')")

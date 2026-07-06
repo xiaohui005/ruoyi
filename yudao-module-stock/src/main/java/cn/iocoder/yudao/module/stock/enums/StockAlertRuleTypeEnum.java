@@ -11,7 +11,8 @@ public enum StockAlertRuleTypeEnum {
     VOLUME_PRICE("VOLUME_PRICE"),
     T_BUY("T_BUY"),
     T_SELL("T_SELL"),
-    PRICE_REACH("PRICE_REACH");
+    PRICE_REACH("PRICE_REACH"),
+    KLINE_PATTERN("KLINE_PATTERN");
 
     private final String code;
 }

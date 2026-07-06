@@ -24,6 +24,10 @@ public interface StockWatchlistService {
 
     List<StockWatchlistDO> getEnabledWatchlists(Long userId);
 
+    StockWatchlistDO manualCollect(Long id, Long userId);
+
+    Integer manualCollectAll(Long userId);
+
     void updateAfterAnalysis(Long id, String latestAdvice, LocalDateTime analyzeTime);
 
     void updateLastCollectTime(Long id, LocalDateTime collectTime);

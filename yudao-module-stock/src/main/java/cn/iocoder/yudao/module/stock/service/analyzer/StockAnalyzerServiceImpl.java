@@ -11,6 +11,7 @@ import cn.iocoder.yudao.module.stock.dal.mysql.analysis.StockTStrategyRecordMapp
 import cn.iocoder.yudao.module.stock.enums.ErrorCodeConstants;
 import cn.iocoder.yudao.module.stock.service.analyzer.dto.StockAnalyzeResultDTO;
 import cn.iocoder.yudao.module.stock.service.analyzer.dto.StockKlinePatternDTO;
+import cn.iocoder.yudao.module.stock.service.advice.StockAdviceTrackingService;
 import cn.iocoder.yudao.module.stock.service.config.StockAnalysisConfigService;
 import cn.iocoder.yudao.module.stock.service.data.StockDataService;
 import cn.iocoder.yudao.module.stock.service.market.StockMarketSignalService;
@@ -48,6 +49,8 @@ public class StockAnalyzerServiceImpl implements StockAnalyzerService {
     private StockAnalysisRecordMapper stockAnalysisRecordMapper;
     @Resource
     private StockTStrategyRecordMapper stockTStrategyRecordMapper;
+    @Resource
+    private StockAdviceTrackingService stockAdviceTrackingService;
 
     @Override
     public StockAnalyzeResultDTO analyze(String symbol, Long userId) {
@@ -193,6 +196,7 @@ public class StockAnalyzerServiceImpl implements StockAnalyzerService {
         tRecord.setInvalidCondition(tCalc.invalidCondition);
         tRecord.setReasonText(tCalc.reason);
         stockTStrategyRecordMapper.insert(tRecord);
+        stockAdviceTrackingService.createOrRefreshFromAnalysis(dto, analysisRecord, tRecord, watchlist, userId);
     }
 
     private String resolvePosition(List<StockKlineDailyDO> klines, StockKlineDailyDO latest) {

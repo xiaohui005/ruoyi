@@ -45,6 +45,7 @@ DELETE FROM `stock_market_snapshot` WHERE `id` IN (9001001);
 DELETE FROM `stock_analysis_record` WHERE `id` IN (9002001);
 DELETE FROM `stock_t_strategy_record` WHERE `id` IN (9002002);
 DELETE FROM `stock_alert_rule` WHERE `id` IN (9003001);
+DELETE FROM `stock_alert_rule` WHERE `id` IN (9003003);
 DELETE FROM `stock_alert_record` WHERE `id` IN (9003002);
 DELETE FROM `stock_trade_journal` WHERE `id` IN (9004001);
 
@@ -128,7 +129,15 @@ INSERT INTO `stock_alert_rule`
  `creator`, `create_time`, `updater`, `update_time`, `deleted`)
 VALUES
   (9003001, 1, 1, '贵州茅台做T买点提醒', 'T_POINT', b'1', 30,
-   '{"symbol":"600519.SH","buyLowPrice":1490.0,"buyHighPrice":1505.0,"direction":"between"}',
+    '{"symbol":"600519.SH","buyLowPrice":1490.0,"buyHighPrice":1505.0,"direction":"between"}',
+    'admin', NOW(), 'admin', NOW(), b'0');
+
+INSERT INTO `stock_alert_rule`
+(`id`, `user_id`, `watchlist_id`, `rule_name`, `rule_type`, `enabled`, `cooldown_minutes`, `rule_json`,
+ `creator`, `create_time`, `updater`, `update_time`, `deleted`)
+VALUES
+  (9003003, 1, 1, '513连板启动提醒', 'KLINE_PATTERN', b'1', 30,
+   '{"patternCodes":["FIVE_ONE_THREE"]}',
    'admin', NOW(), 'admin', NOW(), b'0');
 
 INSERT INTO `stock_alert_record`

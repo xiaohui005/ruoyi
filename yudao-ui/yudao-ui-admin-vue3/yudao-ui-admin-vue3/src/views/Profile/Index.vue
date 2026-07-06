@@ -18,6 +18,9 @@
           <el-tab-pane :label="t('profile.info.resetPwd')" name="resetPwd">
             <ResetPwd />
           </el-tab-pane>
+          <el-tab-pane label="消息推送" name="messagePush">
+            <MessagePush />
+          </el-tab-pane>
           <el-tab-pane :label="t('profile.info.userSocial')" name="userSocial">
             <UserSocial v-model:activeName="activeName" />
           </el-tab-pane>
@@ -27,7 +30,7 @@
   </div>
 </template>
 <script lang="ts" setup>
-import { BasicInfo, ProfileUser, ResetPwd, UserSocial } from './components'
+import { BasicInfo, MessagePush, ProfileUser, ResetPwd, UserSocial } from './components'
 
 const { t } = useI18n()
 defineOptions({ name: 'Profile' })

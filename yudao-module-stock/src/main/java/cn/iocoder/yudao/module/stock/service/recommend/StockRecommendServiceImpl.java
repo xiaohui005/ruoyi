@@ -5,8 +5,11 @@ import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import cn.iocoder.yudao.module.stock.controller.admin.recommend.vo.StockRecommendPageReqVO;
 import cn.iocoder.yudao.module.stock.controller.admin.recommend.vo.StockRecommendRespVO;
 import cn.iocoder.yudao.module.stock.dal.dataobject.analysis.StockAnalysisRecordDO;
+import cn.iocoder.yudao.module.stock.dal.dataobject.analysis.StockTStrategyRecordDO;
+import cn.iocoder.yudao.module.stock.dal.dataobject.market.StockKlineDailyDO;
 import cn.iocoder.yudao.module.stock.dal.dataobject.watchlist.StockWatchlistDO;
 import cn.iocoder.yudao.module.stock.dal.mysql.analysis.StockAnalysisRecordMapper;
+import cn.iocoder.yudao.module.stock.dal.mysql.analysis.StockTStrategyRecordMapper;
 import cn.iocoder.yudao.module.stock.service.analyzer.StockAnalyzerService;
 import cn.iocoder.yudao.module.stock.service.analyzer.dto.StockAnalyzeResultDTO;
 import cn.iocoder.yudao.module.stock.service.calendar.StockTradeCalendarService;
@@ -16,6 +19,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -35,6 +40,8 @@ public class StockRecommendServiceImpl implements StockRecommendService {
     private StockAnalyzerService stockAnalyzerService;
     @Resource
     private StockAnalysisRecordMapper stockAnalysisRecordMapper;
+    @Resource
+    private StockTStrategyRecordMapper stockTStrategyRecordMapper;
     @Resource
     private StockTradeCalendarService stockTradeCalendarService;
 
@@ -101,6 +108,21 @@ public class StockRecommendServiceImpl implements StockRecommendService {
         respVO.setVolumePriceAdvice(latest.getVolumePriceAdvice());
         respVO.setReasonText(latest.getReasonText());
         respVO.setAnalyzeTime(latest.getCreateTime());
+        StockKlineDailyDO latestKline = stockDataService.getLatestDailyKLine(watchlist.getSymbol(), true);
+        if (latestKline != null) {
+            respVO.setCurrentPrice(latestKline.getClosePrice());
+            respVO.setChangePercent(resolveChangePercent(latestKline));
+        }
+        StockTStrategyRecordDO tStrategyRecord = stockTStrategyRecordMapper.selectByAnalysisRecordId(latest.getId());
+        if (tStrategyRecord != null) {
+            respVO.setSupportPrice(tStrategyRecord.getSupportPrice());
+            respVO.setResistancePrice(tStrategyRecord.getResistancePrice());
+            respVO.setBuyLowPrice(tStrategyRecord.getBuyLowPrice());
+            respVO.setBuyHighPrice(tStrategyRecord.getBuyHighPrice());
+            respVO.setSellLowPrice(tStrategyRecord.getSellLowPrice());
+            respVO.setSellHighPrice(tStrategyRecord.getSellHighPrice());
+            respVO.setInvalidCondition(tStrategyRecord.getInvalidCondition());
+        }
         return respVO;
     }
 
@@ -119,5 +141,21 @@ public class StockRecommendServiceImpl implements StockRecommendService {
 
     private boolean isRecommendedAction(String adviceAction) {
         return "BUY".equals(adviceAction) || "T_STRATEGY".equals(adviceAction) || "OBSERVE".equals(adviceAction);
+    }
+
+    private BigDecimal resolveChangePercent(StockKlineDailyDO latestKline) {
+        if (latestKline.getChangePct() != null) {
+            return latestKline.getChangePct();
+        }
+        if (latestKline.getClosePrice() == null || latestKline.getPreClosePrice() == null) {
+            return null;
+        }
+        if (BigDecimal.ZERO.compareTo(latestKline.getPreClosePrice()) == 0) {
+            return null;
+        }
+        return latestKline.getClosePrice()
+                .subtract(latestKline.getPreClosePrice())
+                .multiply(BigDecimal.valueOf(100))
+                .divide(latestKline.getPreClosePrice(), 4, RoundingMode.HALF_UP);
     }
 }

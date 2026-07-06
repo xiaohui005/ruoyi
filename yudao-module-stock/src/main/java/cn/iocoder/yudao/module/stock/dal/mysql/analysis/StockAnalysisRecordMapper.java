@@ -15,16 +15,20 @@ import java.util.stream.Collectors;
 public interface StockAnalysisRecordMapper extends BaseMapperX<StockAnalysisRecordDO> {
 
     default PageResult<StockAnalysisRecordDO> selectPage(StockAnalysisRecordPageReqVO reqVO, Long userId) {
+        LocalDateTime retainedAfter = LocalDateTime.now().minusDays(1);
         return selectPage(reqVO, new LambdaQueryWrapperX<StockAnalysisRecordDO>()
                 .eqIfPresent(StockAnalysisRecordDO::getUserId, userId)
                 .eqIfPresent(StockAnalysisRecordDO::getSymbol, reqVO.getSymbol())
+                .ge(StockAnalysisRecordDO::getCreateTime, retainedAfter)
                 .orderByDesc(StockAnalysisRecordDO::getCreateTime));
     }
 
     default StockAnalysisRecordDO selectLatestBySymbolAndUser(String symbol, Long userId) {
+        LocalDateTime retainedAfter = LocalDateTime.now().minusDays(1);
         return selectOne(new LambdaQueryWrapperX<StockAnalysisRecordDO>()
                 .eq(StockAnalysisRecordDO::getSymbol, symbol)
                 .eqIfPresent(StockAnalysisRecordDO::getUserId, userId)
+                .ge(StockAnalysisRecordDO::getCreateTime, retainedAfter)
                 .orderByDesc(StockAnalysisRecordDO::getCreateTime)
                 .last("LIMIT 1"));
     }

@@ -43,4 +43,10 @@ public interface StockWatchlistMapper extends BaseMapperX<StockWatchlistDO> {
                 .eq(StockWatchlistDO::getEnableMonitor, true)
                 .orderByDesc(StockWatchlistDO::getUpdateTime));
     }
+
+    default List<StockWatchlistDO> selectListByUserId(Long userId) {
+        return selectList(new LambdaQueryWrapperX<StockWatchlistDO>()
+                .eq(StockWatchlistDO::getUserId, userId)
+                .orderByDesc(StockWatchlistDO::getUpdateTime));
+    }
 }

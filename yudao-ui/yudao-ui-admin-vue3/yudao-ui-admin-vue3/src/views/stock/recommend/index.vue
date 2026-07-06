@@ -46,9 +46,23 @@
     />
     <el-table :data="list" v-loading="loading">
       <el-table-column label="股票" min-width="180">
-        <template #default="{ row }">{{ row.symbol }} {{ row.stockName }}</template>
+        <template #default="{ row }">
+          <el-button link type="primary" @click="openMonitor(row)">
+            {{ row.symbol }} {{ row.stockName }}
+          </el-button>
+        </template>
       </el-table-column>
       <el-table-column label="自选分组" prop="watchlistName" min-width="140" />
+      <el-table-column label="当前价格" width="110">
+        <template #default="{ row }">{{ formatPrice(row.currentPrice) }}</template>
+      </el-table-column>
+      <el-table-column label="涨幅" width="110">
+        <template #default="{ row }">
+          <span :class="getChangeClass(row.changePercent)">
+            {{ formatChangePercent(row.changePercent) }}
+          </span>
+        </template>
+      </el-table-column>
       <el-table-column label="建议动作" width="120">
         <template #default="{ row }">
           <el-tag :type="adviceTagType(row.adviceAction)" round>
@@ -60,6 +74,22 @@
         <template #default="{ row }">{{ formatRiskLevel(row.riskLevel) }}</template>
       </el-table-column>
       <el-table-column label="市场节点" prop="marketSignalName" min-width="160" />
+      <el-table-column label="支撑/压力" min-width="180">
+        <template #default="{ row }">
+          {{ formatPrice(row.supportPrice) }} / {{ formatPrice(row.resistancePrice) }}
+        </template>
+      </el-table-column>
+      <el-table-column label="买入区间" min-width="180">
+        <template #default="{ row }">
+          {{ formatPriceRange(row.buyLowPrice, row.buyHighPrice) }}
+        </template>
+      </el-table-column>
+      <el-table-column label="卖出区间" min-width="180">
+        <template #default="{ row }">
+          {{ formatPriceRange(row.sellLowPrice, row.sellHighPrice) }}
+        </template>
+      </el-table-column>
+      <el-table-column label="失效条件" prop="invalidCondition" min-width="180" show-overflow-tooltip />
       <el-table-column label="量价建议" prop="volumePriceAdvice" min-width="220" show-overflow-tooltip />
       <el-table-column label="推荐原因" prop="reasonText" min-width="280" show-overflow-tooltip />
       <el-table-column label="分析时间" prop="analyzeTime" width="180" />
@@ -79,6 +109,7 @@ import * as RecommendApi from '@/api/stock/recommend'
 defineOptions({ name: 'StockRecommend' })
 
 const message = useMessage()
+const router = useRouter()
 
 const adviceActionMap: Record<string, string> = {
   BUY: '买入',
@@ -104,6 +135,21 @@ const queryParams = reactive<RecommendApi.StockRecommendPageReqVO>({
 
 const formatAdviceAction = (value?: string) => adviceActionMap[value || ''] || value || '-'
 const formatRiskLevel = (value?: string) => riskLevelMap[value || ''] || value || '-'
+const formatPrice = (value?: number) => (value === undefined || value === null ? '-' : value.toFixed(4))
+const formatChangePercent = (value?: number) =>
+  value === undefined || value === null ? '-' : `${value.toFixed(2)}%`
+const formatPriceRange = (low?: number, high?: number) => {
+  if (low === undefined || low === null || high === undefined || high === null) {
+    return '-'
+  }
+  return `${low.toFixed(4)} ~ ${high.toFixed(4)}`
+}
+const getChangeClass = (value?: number) => {
+  if (value === undefined || value === null || value === 0) {
+    return 'text-neutral'
+  }
+  return value > 0 ? 'text-rise' : 'text-fall'
+}
 const adviceTagType = (value?: string) => {
   if (value === 'BUY') {
     return 'danger'
@@ -136,7 +182,32 @@ const handleRefresh = async () => {
   await getList()
 }
 
+const openMonitor = (row: RecommendApi.StockRecommendRespVO) => {
+  router.push({
+    path: '/stock/monitor',
+    query: {
+      symbol: row.symbol
+    }
+  })
+}
+
 onMounted(() => {
   getList()
 })
 </script>
+
+<style scoped lang="scss">
+.text-rise {
+  color: #d03050;
+  font-weight: 600;
+}
+
+.text-fall {
+  color: #00a870;
+  font-weight: 600;
+}
+
+.text-neutral {
+  color: var(--el-text-color-secondary);
+}
+</style>

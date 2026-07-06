@@ -85,7 +85,7 @@
       <el-descriptions-item label="建议仓位">{{ analyzeResult.positionRatio ?? '-' }}</el-descriptions-item>
       <el-descriptions-item label="失效条件">{{ analyzeResult.invalidCondition || '-' }}</el-descriptions-item>
       <el-descriptions-item label="分析时间" :span="2">
-        {{ analyzeResult.analyzeTime || '-' }}
+        {{ formatAnalyzeTime(analyzeResult.analyzeTime) }}
       </el-descriptions-item>
       <el-descriptions-item :label="patternText.summary" :span="2">
         <div class="pattern-wrap">
@@ -161,7 +161,7 @@
         <template #default="{ row }">{{ formatRiskLevel(row.riskLevel) }}</template>
       </el-table-column>
       <el-table-column label="量价建议" prop="volumePriceAdvice" min-width="260" show-overflow-tooltip />
-      <el-table-column label="分析时间" prop="analyzeTime" width="180" />
+      <el-table-column label="分析时间" prop="analyzeTime" width="180" :formatter="analyzeTimeFormatter" />
     </el-table>
     <Pagination
       :total="historyTotal"
@@ -210,6 +210,7 @@
 <script setup lang="ts">
 import * as AnalyzerApi from '@/api/stock/analyzer'
 import * as WatchlistApi from '@/api/stock/watchlist'
+import { formatDate } from '@/utils/formatTime'
 
 defineOptions({ name: 'StockAnalyzer' })
 
@@ -278,6 +279,31 @@ const formatAdviceAction = (value?: string) => adviceActionMap[value || ''] || v
 const formatRiskLevel = (value?: string) => riskLevelMap[value || ''] || value || '-'
 const formatPosition = (value?: string) => positionMap[value || ''] || value || '-'
 const formatVolumePriceType = (value?: string) => volumePriceTypeMap[value || ''] || value || '-'
+const formatAnalyzeTime = (value?: string | number) => {
+  if (value === undefined || value === null || value === '') {
+    return '-'
+  }
+  const timestamp = typeof value === 'number' || /^\d{10,13}$/.test(String(value))
+  if (timestamp) {
+    const rawValue = Number(value)
+    const dateValue = String(Math.trunc(rawValue)).length === 10 ? rawValue * 1000 : rawValue
+    return new Intl.DateTimeFormat('zh-CN', {
+      timeZone: 'Asia/Shanghai',
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit',
+      hour12: false
+    })
+      .format(dateValue)
+      .replace(/\//g, '-')
+  }
+  return formatDate(value)
+}
+const analyzeTimeFormatter = (_row: any, _column: any, cellValue: string | number) =>
+  formatAnalyzeTime(cellValue)
 
 const getHistory = async () => {
   historyLoading.value = true

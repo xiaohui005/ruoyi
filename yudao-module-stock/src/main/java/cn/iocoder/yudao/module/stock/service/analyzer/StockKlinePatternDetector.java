@@ -11,6 +11,16 @@ public final class StockKlinePatternDetector {
 
     private static final String BULLISH = "BULLISH";
     private static final String BEARISH = "BEARISH";
+    private static final String FIVE_ONE_THREE = "FIVE_ONE_THREE";
+
+    private static final int FIVE_ONE_THREE_WINDOW = 9;
+    private static final double FIVE_ONE_THREE_SMALL_BODY_RATIO = 0.025D;
+    private static final double FIVE_ONE_THREE_VOLUME_SPIKE_RATIO = 1.8D;
+    private static final double FIVE_ONE_THREE_LIMIT_UP_TOUCH_RATIO = 1.095D;
+    private static final double FIVE_ONE_THREE_LIMIT_UP_BREAK_RATIO = 0.995D;
+    private static final double FIVE_ONE_THREE_CONTROL_HIGH_RATIO = 0.98D;
+    private static final double FIVE_ONE_THREE_CONTROL_LOW_RATIO = 0.97D;
+    private static final double FIVE_ONE_THREE_CONTROL_BODY_RATIO = 0.03D;
 
     private StockKlinePatternDetector() {
     }
@@ -29,6 +39,11 @@ public final class StockKlinePatternDetector {
             patterns.add(build("XI_SHANG_MEI_SHAO", "\u559c\u4e0a\u7709\u68a2", BULLISH, "\u5229\u591a",
                     "\u6da8\u505c\u540e 2 \u5230 4 \u65e5\u7a84\u5e45\u6574\u7406\u4e14\u91cf\u80fd\u9012\u589e\uff0c\u5c5e\u4e8e\u5f3a\u52bf\u84c4\u52bf\u3002",
                     "\u91cf\u80fd\u7ee7\u7eed\u653e\u5927\u53ef\u5173\u6ce8\uff0c\u82e5\u91cf\u7f29\u660e\u663e\u9700\u9632\u8bf1\u591a\u3002"));
+        }
+        if (matchFiveOneThree(klines)) {
+            patterns.add(build(FIVE_ONE_THREE, "513\u8fde\u677f\u542f\u52a8", BULLISH, "\u5229\u591a",
+                    "\u524d 5 \u65e5\u8fde\u7eed\u5c0f\u9633\u63d0\u5347\uff0c\u7b2c 6 \u65e5\u91cf\u80fd\u7a81\u653e\u5e76\u521d\u89e6\u6da8\u505c\u540e\u56de\u843d\uff0c\u4e4b\u540e 3 \u65e5\u63a7\u5236\u7a33\u5b9a\uff0c\u5c5e\u4e8e\u8fde\u677f\u542f\u52a8\u4fe1\u53f7\u3002",
+                    "\u5148\u7b49\u63a7\u5236\u533a\u57df\u7a33\u5b9a\u518d\u8ffd\u8e2a\uff0c\u4e0d\u5728\u7b2c 6 \u65e5\u91cf\u80fd\u5931\u63a7\u540e\u8ffd\u9ad8\u3002"));
         }
         if (matchShuangChuiDaZhuang(klines)) {
             patterns.add(build("SHUANG_CHUI_DA_ZHUANG", "\u53cc\u9524\u6253\u6869", BULLISH, "\u5229\u591a",
@@ -114,6 +129,74 @@ public final class StockKlinePatternDetector {
             }
         }
         return false;
+    }
+
+    private static boolean matchFiveOneThree(List<StockKlineDailyDO> klines) {
+        if (klines.size() < FIVE_ONE_THREE_WINDOW) {
+            return false;
+        }
+        int start = klines.size() - FIVE_ONE_THREE_WINDOW;
+        for (int i = start; i < start + 5; i++) {
+            StockKlineDailyDO item = klines.get(i);
+            if (item == null || item.getOpenPrice() == null || item.getClosePrice() == null
+                    || item.getHighPrice() == null || item.getLowPrice() == null || item.getVolume() == null
+                    || !isSmallBullish(item)) {
+                return false;
+            }
+            if (i > start && value(item.getClosePrice()) < value(klines.get(i - 1).getClosePrice())) {
+                return false;
+            }
+        }
+        StockKlineDailyDO breakout = klines.get(start + 5);
+        if (breakout == null || breakout.getOpenPrice() == null || breakout.getClosePrice() == null
+                || breakout.getHighPrice() == null || breakout.getLowPrice() == null || breakout.getVolume() == null) {
+            return false;
+        }
+        double priorVolumeAvg = 0D;
+        for (int i = start; i < start + 5; i++) {
+            priorVolumeAvg += value(klines.get(i).getVolume());
+        }
+        priorVolumeAvg = priorVolumeAvg / 5D;
+        if (!isBullish(breakout) || !isLimitUpTouchThenBreak(breakout, klines.get(start + 4))) {
+            return false;
+        }
+        if (value(breakout.getVolume()) < priorVolumeAvg * FIVE_ONE_THREE_VOLUME_SPIKE_RATIO) {
+            return false;
+        }
+        double breakoutHigh = value(breakout.getHighPrice());
+        double breakoutLow = value(breakout.getLowPrice());
+        double breakoutVolume = value(breakout.getVolume());
+        for (int i = start + 6; i < start + 9; i++) {
+            StockKlineDailyDO item = klines.get(i);
+            if (item == null || item.getHighPrice() == null || item.getLowPrice() == null
+                    || item.getOpenPrice() == null || item.getClosePrice() == null) {
+                return false;
+            }
+            if (value(item.getOpenPrice()) < value(breakout.getOpenPrice())) {
+                return false;
+            }
+            if (body(item) > value(item.getClosePrice()) * FIVE_ONE_THREE_CONTROL_BODY_RATIO) {
+                return false;
+            }
+            double lowPrice = value(item.getLowPrice());
+            if (lowPrice <= 0D) {
+                return false;
+            }
+            double amplitude = (value(item.getHighPrice()) - lowPrice) / lowPrice;
+            if (amplitude > 0.05D) {
+                return false;
+            }
+            if (value(item.getHighPrice()) > breakoutHigh * FIVE_ONE_THREE_CONTROL_HIGH_RATIO) {
+                return false;
+            }
+            if (value(item.getLowPrice()) < breakoutLow * FIVE_ONE_THREE_CONTROL_LOW_RATIO) {
+                return false;
+            }
+            if (value(item.getVolume()) > breakoutVolume) {
+                return false;
+            }
+        }
+        return true;
     }
 
     private static boolean matchShuangChuiDaZhuang(List<StockKlineDailyDO> klines) {
@@ -225,6 +308,23 @@ public final class StockKlinePatternDetector {
 
     private static boolean isLargeBullish(StockKlineDailyDO item) {
         return isBullish(item) && body(item) >= value(item.getClosePrice()) * 0.02;
+    }
+
+    private static boolean isSmallBullish(StockKlineDailyDO item) {
+        return isBullish(item) && body(item) <= value(item.getClosePrice()) * FIVE_ONE_THREE_SMALL_BODY_RATIO;
+    }
+
+    private static boolean isLimitUpTouchThenBreak(StockKlineDailyDO item, StockKlineDailyDO prev) {
+        if (item == null || prev == null) {
+            return false;
+        }
+        double prevClose = value(prev.getClosePrice());
+        if (prevClose <= 0D) {
+            return false;
+        }
+        double limitUpPrice = prevClose * FIVE_ONE_THREE_LIMIT_UP_TOUCH_RATIO;
+        return value(item.getHighPrice()) >= limitUpPrice
+                && value(item.getClosePrice()) < value(item.getHighPrice()) * FIVE_ONE_THREE_LIMIT_UP_BREAK_RATIO;
     }
 
     private static boolean isSmallBody(StockKlineDailyDO item) {

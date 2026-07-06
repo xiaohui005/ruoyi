@@ -21,6 +21,15 @@
           <Icon icon="ep:search" class="mr-5px" />
           查询
         </el-button>
+        <el-button
+          type="warning"
+          :loading="manualCollectAllLoading"
+          @click="handleManualCollectAll"
+          v-hasPermi="['stock:watchlist:update']"
+        >
+          <Icon icon="ep:refresh" class="mr-5px" />
+          一键采集价格
+        </el-button>
         <el-button type="primary" @click="openDialog()" v-hasPermi="['stock:watchlist:create']">
           <Icon icon="ep:plus" class="mr-5px" />
           新增自选股
@@ -60,13 +69,14 @@
           </el-tag>
         </template>
       </el-table-column>
+      <el-table-column label="最近采集" prop="latestCollectTime" width="180" />
       <el-table-column label="最近分析" prop="latestAnalyzeTime" width="180" />
       <el-table-column label="最近提醒" prop="latestAlertTime" width="180" />
       <el-table-column label="最新建议" min-width="160">
         <template #default="{ row }">{{ formatAdviceAction(row.latestAdvice) }}</template>
       </el-table-column>
       <el-table-column label="备注" prop="remark" min-width="180" show-overflow-tooltip />
-      <el-table-column label="操作" width="220" fixed="right">
+      <el-table-column label="操作" width="300" fixed="right">
         <template #default="{ row }">
           <el-button
             link
@@ -75,6 +85,15 @@
             v-hasPermi="['stock:watchlist:update']"
           >
             编辑
+          </el-button>
+          <el-button
+            link
+            type="primary"
+            :disabled="isManualCollecting(row.id)"
+            @click="handleManualCollect(row)"
+            v-hasPermi="['stock:watchlist:update']"
+          >
+            {{ isManualCollecting(row.id) ? '采集中' : '手动采集' }}
           </el-button>
           <el-button link @click="showRuntimeState(row.id)" v-hasPermi="['stock:watchlist:query']">
             状态
@@ -183,6 +202,8 @@ const adviceActionMap: Record<string, string> = {
 const loading = ref(false)
 const total = ref(0)
 const list = ref<WatchlistApi.StockWatchlistRespVO[]>([])
+const manualCollectAllLoading = ref(false)
+const manualCollectingIds = ref<number[]>([])
 const queryParams = reactive<WatchlistApi.StockWatchlistPageReqVO>({
   pageNo: 1,
   pageSize: 10,
@@ -217,6 +238,7 @@ const getChangeClass = (value?: number) => {
   }
   return value > 0 ? 'text-rise' : 'text-fall'
 }
+const isManualCollecting = (id: number) => manualCollectingIds.value.includes(id)
 
 const resetForm = () => {
   formData.id = undefined
@@ -282,6 +304,44 @@ const handleDelete = async (id: number) => {
   await WatchlistApi.deleteWatchlist(id)
   message.success('删除成功')
   await getList()
+}
+
+const handleManualCollectAll = async () => {
+  if (manualCollectAllLoading.value) {
+    return
+  }
+  manualCollectAllLoading.value = true
+  try {
+    const count = await WatchlistApi.manualCollectAllWatchlist()
+    message.success(`已采集 ${count} 只自选股`)
+    await getList()
+  } finally {
+    manualCollectAllLoading.value = false
+  }
+}
+
+const handleManualCollect = async (row: WatchlistApi.StockWatchlistRespVO) => {
+  if (isManualCollecting(row.id)) {
+    return
+  }
+  manualCollectingIds.value.push(row.id)
+  try {
+    const refreshed = await WatchlistApi.manualCollectWatchlist(row.id)
+    Object.assign(row, refreshed)
+    if (runtimeVisible.value && runtimeState.value?.watchlistId === row.id) {
+      runtimeState.value = {
+        ...runtimeState.value,
+        latestCollectTime: refreshed.latestCollectTime,
+        latestAnalyzeTime: refreshed.latestAnalyzeTime,
+        latestAlertTime: refreshed.latestAlertTime,
+        latestAdvice: refreshed.latestAdvice,
+        enableMonitor: refreshed.enableMonitor
+      }
+    }
+    message.success('采集成功')
+  } finally {
+    manualCollectingIds.value = manualCollectingIds.value.filter((item) => item !== row.id)
+  }
 }
 
 const showRuntimeState = async (id: number) => {

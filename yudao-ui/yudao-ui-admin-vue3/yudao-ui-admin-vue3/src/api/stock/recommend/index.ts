@@ -17,6 +17,15 @@ export interface StockRecommendRespVO {
   marketSignalName?: string
   volumePriceAdvice?: string
   reasonText?: string
+  currentPrice?: number
+  changePercent?: number
+  supportPrice?: number
+  resistancePrice?: number
+  buyLowPrice?: number
+  buyHighPrice?: number
+  sellLowPrice?: number
+  sellHighPrice?: number
+  invalidCondition?: string
   analyzeTime?: string
 }
 

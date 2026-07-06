@@ -92,6 +92,40 @@ class StockKlinePatternDetectorTest {
                 .collect(Collectors.toSet()).contains("SI_SHEN_SAN_BU_QU"));
     }
 
+    @Test
+    void shouldDetectFiveOneThree() {
+        List<StockKlinePatternDTO> patterns = StockKlinePatternDetector.detect(Arrays.asList(
+                k("2026-06-25", "10.00", "10.20", "10.25", "9.98", "100"),
+                k("2026-06-26", "10.20", "10.40", "10.45", "10.18", "105"),
+                k("2026-06-27", "10.40", "10.60", "10.65", "10.38", "110"),
+                k("2026-06-28", "10.60", "10.82", "10.87", "10.58", "115"),
+                k("2026-06-29", "10.82", "11.05", "11.10", "10.79", "120"),
+                k("2026-06-30", "11.05", "11.58", "12.18", "11.00", "260"),
+                k("2026-07-01", "11.56", "11.48", "11.62", "11.38", "190"),
+                k("2026-07-02", "11.47", "11.52", "11.58", "11.42", "180"),
+                k("2026-07-03", "11.50", "11.55", "11.60", "11.45", "175")
+        ));
+        assertTrue(patterns.stream().map(StockKlinePatternDTO::getPatternCode)
+                .collect(Collectors.toSet()).contains("FIVE_ONE_THREE"));
+    }
+
+    @Test
+    void shouldNotDetectFiveOneThreeWhenControlBreaks() {
+        List<StockKlinePatternDTO> patterns = StockKlinePatternDetector.detect(Arrays.asList(
+                k("2026-06-25", "10.00", "10.20", "10.25", "9.98", "100"),
+                k("2026-06-26", "10.20", "10.40", "10.45", "10.18", "105"),
+                k("2026-06-27", "10.40", "10.60", "10.65", "10.38", "110"),
+                k("2026-06-28", "10.60", "10.82", "10.87", "10.58", "115"),
+                k("2026-06-29", "10.82", "11.05", "11.10", "10.79", "120"),
+                k("2026-06-30", "11.05", "11.58", "12.18", "11.00", "260"),
+                k("2026-07-01", "11.56", "11.48", "11.62", "11.38", "190"),
+                k("2026-07-02", "11.47", "11.70", "12.00", "11.42", "260"),
+                k("2026-07-03", "11.68", "11.60", "11.72", "11.45", "175")
+        ));
+        assertFalse(patterns.stream().map(StockKlinePatternDTO::getPatternCode)
+                .collect(Collectors.toSet()).contains("FIVE_ONE_THREE"));
+    }
+
     private StockKlineDailyDO k(String date, String open, String close, String high, String low, String volume) {
         StockKlineDailyDO item = new StockKlineDailyDO();
         item.setTradeDate(LocalDate.parse(date));

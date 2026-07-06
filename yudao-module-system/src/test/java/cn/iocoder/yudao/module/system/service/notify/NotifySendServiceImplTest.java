@@ -5,6 +5,7 @@ import cn.iocoder.yudao.framework.common.enums.CommonStatusEnum;
 import cn.iocoder.yudao.framework.common.enums.UserTypeEnum;
 import cn.iocoder.yudao.framework.test.core.ut.BaseMockitoUnitTest;
 import cn.iocoder.yudao.module.system.dal.dataobject.notify.NotifyTemplateDO;
+import cn.iocoder.yudao.module.system.service.messagepush.SystemMessagePushService;
 import org.assertj.core.util.Lists;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
@@ -33,6 +34,8 @@ class NotifySendServiceImplTest extends BaseMockitoUnitTest {
     private NotifyTemplateService notifyTemplateService;
     @Mock
     private NotifyMessageService notifyMessageService;
+    @Mock
+    private SystemMessagePushService systemMessagePushService;
 
     @Test
     public void testSendSingleNotifyToAdmin() {
@@ -60,6 +63,8 @@ class NotifySendServiceImplTest extends BaseMockitoUnitTest {
         Long resultMessageId = notifySendService.sendSingleNotifyToAdmin(userId, templateCode, templateParams);
         // 断言
         assertEquals(messageId, resultMessageId);
+        verify(systemMessagePushService).pushNotifyMessage(eq(userId), eq(userType), eq(template),
+                eq(content), eq(templateParams));
     }
 
     @Test

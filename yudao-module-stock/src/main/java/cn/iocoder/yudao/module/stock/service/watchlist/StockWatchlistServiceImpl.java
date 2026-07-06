@@ -8,6 +8,7 @@ import cn.iocoder.yudao.module.stock.controller.admin.watchlist.vo.StockWatchlis
 import cn.iocoder.yudao.module.stock.dal.dataobject.watchlist.StockWatchlistDO;
 import cn.iocoder.yudao.module.stock.dal.mysql.watchlist.StockWatchlistMapper;
 import cn.iocoder.yudao.module.stock.enums.ErrorCodeConstants;
+import cn.iocoder.yudao.module.stock.service.data.StockDataService;
 import cn.iocoder.yudao.module.stock.util.StockSymbolUtils;
 import org.springframework.stereotype.Service;
 
@@ -24,6 +25,8 @@ public class StockWatchlistServiceImpl implements StockWatchlistService {
 
     @Resource
     private StockWatchlistMapper stockWatchlistMapper;
+    @Resource
+    private StockDataService stockDataService;
 
     @Override
     public Long createWatchlist(StockWatchlistSaveReqVO reqVO, Long userId) {
@@ -77,6 +80,30 @@ public class StockWatchlistServiceImpl implements StockWatchlistService {
     @Override
     public List<StockWatchlistDO> getEnabledWatchlists(Long userId) {
         return stockWatchlistMapper.selectEnabledListByUserId(userId);
+    }
+
+    @Override
+    public StockWatchlistDO manualCollect(Long id, Long userId) {
+        StockWatchlistDO watchlist = getWatchlist(id, userId);
+        stockDataService.refreshDailyKLine(watchlist.getSymbol(), 1);
+        watchlist.setLatestCollectTime(LocalDateTime.now());
+        stockWatchlistMapper.updateById(watchlist);
+        return stockWatchlistMapper.selectById(id);
+    }
+
+    @Override
+    public Integer manualCollectAll(Long userId) {
+        List<StockWatchlistDO> watchlists = stockWatchlistMapper.selectListByUserId(userId);
+        if (watchlists.isEmpty()) {
+            return 0;
+        }
+        LocalDateTime collectTime = LocalDateTime.now();
+        for (StockWatchlistDO watchlist : watchlists) {
+            stockDataService.refreshDailyKLine(watchlist.getSymbol(), 1);
+            watchlist.setLatestCollectTime(collectTime);
+            stockWatchlistMapper.updateById(watchlist);
+        }
+        return watchlists.size();
     }
 
     @Override

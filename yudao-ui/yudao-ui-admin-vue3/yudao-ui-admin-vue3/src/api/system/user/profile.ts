@@ -35,6 +35,15 @@ export interface UserProfileUpdateReqVO {
   avatar?: string
 }
 
+export interface UserMessagePushProfileVO {
+  enabled: boolean
+  serverUrl: string
+  deviceKey: string
+  receiveSystemMessage: boolean
+  receiveNotificationMessage: boolean
+  receiveStockAlert: boolean
+}
+
 // 查询用户个人信息
 export const getUserProfile = () => {
   return request.get({ url: '/system/user/profile/get' })
@@ -54,4 +63,12 @@ export const updateUserPassword = (oldPassword: string, newPassword: string) => 
       newPassword: newPassword
     }
   })
+}
+
+export const getUserMessagePushProfile = () => {
+  return request.get<UserMessagePushProfileVO>({ url: '/system/user/profile/message-push/get' })
+}
+
+export const updateUserMessagePushProfile = (data: UserMessagePushProfileVO) => {
+  return request.put({ url: '/system/user/profile/message-push/update', data })
 }

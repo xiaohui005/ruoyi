@@ -4,8 +4,9 @@ import cn.hutool.core.util.StrUtil;
 import cn.iocoder.yudao.module.stock.controller.admin.alert.vo.StockAnalysisConfigUpdateReqVO;
 import cn.iocoder.yudao.module.stock.dal.dataobject.config.StockAnalysisConfigDO;
 import cn.iocoder.yudao.module.stock.dal.mysql.config.StockAnalysisConfigMapper;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.Resource;
@@ -14,19 +15,21 @@ import java.util.Arrays;
 import java.util.List;
 
 @Service
-@Slf4j
 public class StockAnalysisConfigServiceImpl implements StockAnalysisConfigService {
 
+    private static final Logger log = LoggerFactory.getLogger(StockAnalysisConfigServiceImpl.class);
+
     private static final List<StockAnalysisConfigDO> DEFAULT_CONFIGS = Arrays.asList(
-            build("market.index-rise-threshold", "市场指数涨幅阈值", "1.20", "增量共振所需的指数涨幅"),
-            build("market.turnover-ratio-threshold", "市场成交额放量阈值", "1.10", "增量共振所需的成交额放量水平"),
-            build("market.theme-limit-up-threshold", "题材涨停数阈值", "3", "题材发酵所需的最小涨停数量"),
-            build("market.limit-down-max", "跌停上限", "10", "情绪修复时允许的最大跌停数量"),
-            build("market.limit-up-min", "涨停下限", "20", "情绪修复时要求的最小涨停数量"),
-            build("analyzer.volume-rise-threshold", "放量阈值", "1.20", "量增价升判断所需的量比"),
-            build("analyzer.volume-shrink-threshold", "缩量阈值", "0.90", "价涨量缩判断所需的量比"),
-            build("strategy.position-ratio", "默认做T仓位", "0.30", "默认推荐仓位"),
-            build("strategy.invalid-break-threshold", "做T失效跌破阈值", "0.02", "跌破支撑位后的失效阈值")
+            build("market.index-rise-threshold", "Market Index Rise Threshold", "1.20", "Required index rise for market confirmation"),
+            build("market.turnover-ratio-threshold", "Market Turnover Ratio Threshold", "1.10", "Required turnover expansion for market confirmation"),
+            build("market.theme-limit-up-threshold", "Theme Limit Up Threshold", "3", "Minimum limit-up count for hot themes"),
+            build("market.limit-down-max", "Market Limit Down Max", "10", "Maximum limit-down count allowed during recovery"),
+            build("market.limit-up-min", "Market Limit Up Min", "20", "Minimum limit-up count required during recovery"),
+            build("analyzer.volume-rise-threshold", "Volume Rise Threshold", "1.20", "Volume ratio threshold for rising volume"),
+            build("analyzer.volume-shrink-threshold", "Volume Shrink Threshold", "0.90", "Volume ratio threshold for shrinking volume"),
+            build("strategy.position-ratio", "Default T Position Ratio", "0.30", "Default recommended position ratio"),
+            build("strategy.invalid-break-threshold", "T Invalid Break Threshold", "0.02", "Invalidation threshold below support"),
+            build("strategy.advice-expected-days", "Advice Expected Days", "5", "Default observation days for advice tracking")
     );
 
     @Resource
@@ -72,7 +75,7 @@ public class StockAnalysisConfigServiceImpl implements StockAnalysisConfigServic
         try {
             return new BigDecimal(config.getConfigValue().trim());
         } catch (NumberFormatException ex) {
-            log.warn("[getDecimalConfig][配置 {} 的值 {} 不是合法数字，回退默认值 {}]",
+            log.warn("[getDecimalConfig][config {} value {} is invalid, fallback to default {}]",
                     configKey, config.getConfigValue(), defaultValue);
             return defaultValue;
         }
